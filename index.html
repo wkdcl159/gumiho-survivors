@@ -250,6 +250,8 @@ button.prof{font:inherit;cursor:pointer}
 #cut-box .nm{position:absolute;top:-15px;left:16px;font-family:var(--display);font-size:18px;background:var(--seal);color:#fff6e3;padding:3px 14px;border-radius:2px;transform:rotate(-2deg);box-shadow:0 2px 0 rgba(0,0,0,.4)}
 #cut-text{margin:0;min-height:2.4em;font-size:clamp(18px,4.6vw,24px);line-height:1.5;color:var(--paper)}
 #cut-hint{display:block;text-align:right;font-size:12px;color:var(--muted)}
+#cut-hint.wt{color:#ffd75e;animation:cwt 1s ease-in-out infinite}
+@keyframes cwt{0%,100%{opacity:.4}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){#cut .bar,#cut-face{transition:none}#cut-face.pop{animation:none}}
 #bossbar{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 84px);width:min(420px,66vw)}
 #bossbar[hidden]{display:none}
@@ -548,7 +550,7 @@ addEventListener('keydown',e=>{
   if(S&&S.state==='play'&&!e.repeat&&(e.code==='Space'||e.code==='KeyQ'))castSkill();
   if(S&&S.state==='play'&&!e.repeat&&e.code==='KeyE')castPossess();
   if(S&&S.state==='play'&&!e.repeat&&e.code==='KeyR')castJut();
-  if(S&&S.state==='cut'&&(e.code==='Space'||e.code==='Enter'||e.code==='Escape'))skipCut();
+  if(S&&S.state==='cut'){if(e.code==='Escape')skipCut();else if((e.code==='Space'||e.code==='Enter')&&!e.repeat)advanceCut();}
   if((e.code==='KeyP'||e.code==='Escape')&&S)togglePause();
 });
 addEventListener('keyup',e=>{keys[e.code]=false;});
@@ -1188,7 +1190,8 @@ function startCut(kind){
   else if(C.jut2){const sd=Math.random()<.5?-1:1,dd=Math.min(W*.3,260);C.boss={stage:0,x:s.p.x+sd*dd,y:s.p.y-10};}
   $('cut-nm').textContent=C.speaker||'달기';
   updateHud();
-  s.cut={C,t:0,i:0,li:0,speed:1,flash:0,typed:-1,gather:0};
+  s.cut={C,t:0,i:0,li:0,speed:1,flash:0,typed:-1,gather:0,rl:0,wait:false};
+  {const h=$('cut-hint');h.textContent='클릭 / Space: 넘기기 · Esc: 건너뛰기';h.classList.remove('wt');}
   const el=$('cut');
   $('cut-text').textContent='';
   $('cut-face').classList.remove('pop');
@@ -1212,6 +1215,33 @@ function endCut(){
   const el=$('cut');el.classList.remove('on');el.hidden=true;
 }
 function skipCut(){if(S&&S.state==='cut')S.cut.speed=8;}
+// 대사는 클릭/Space로만 넘어간다: 각 대사가 끝나면 시간이 멈추고, 누르면 다음으로
+function cutWait(c){
+  const C=c.C;
+  if(C.lines){
+    const i=c.rl||0;if(i>=C.lines.length)return null;
+    const L=C.lines[i],nx=C.lines[i+1];
+    let w=L.t0+L.dur+.15;if(nx)w=Math.min(w,nx.t0-.001);
+    return w;
+  }
+  if(C.text&&!(c.rl>=1)){const a1=C.tt?C.tt[1]:1;return a1+.15;}
+  return null;
+}
+function advanceCut(){
+  const s=S;if(!s||s.state!=='cut')return;
+  const c=s.cut,C=c.C;
+  if(c.speed>1)return;
+  if(C.lines){
+    const i=c.rl||0;if(i>=C.lines.length)return;
+    const L=C.lines[i];
+    if(c.t<L.t0)c.t=L.t0+.1;
+    else if(c.t<L.t0+L.dur-.01)c.t=L.t0+L.dur;
+    else c.rl=i+1;
+  }else if(C.text&&!(c.rl>=1)){
+    const a1=C.tt?C.tt[1]:1;
+    if(c.t<a1-.01)c.t=a1;else c.rl=1;
+  }
+}
 function doCutEv(ev){
   const s=S,c=s.cut,C=c.C,p=s.p,pal=PAL[C.to];
   if(ev.k==='transform'){if(C.noForm)s.t3=true;else s.form=C.to;setFace(C.tl,true);}
@@ -1257,6 +1287,9 @@ function doCutEv(ev){
 function cutUpdate(dt){
   const s=S,c=s.cut,C=c.C,p=s.p,pal=PAL[C.to];
   c.t+=dt;
+  {const wp=c.speed>1?null:cutWait(c);
+   const w=wp!=null&&c.t>=wp;if(w)c.t=wp;
+   if(w!==c.wait){c.wait=w;const h=$('cut-hint');h.textContent=w?'▼ 클릭 또는 Space':'클릭 / Space: 넘기기 · Esc: 건너뛰기';h.classList.toggle('wt',w);}}
   while(c.i<C.ev.length&&C.ev[c.i].t<=c.t){doCutEv(C.ev[c.i]);c.i++;}
   // 대사 타이핑
   let text=C.text,a0=C.tt?C.tt[0]:0,a1=C.tt?C.tt[1]:1;
@@ -2424,7 +2457,7 @@ $('b-hellback').onclick=()=>show('p-start');
 $('b-hellgo').onclick=()=>startHell(2);
 $('b-mego').onclick=()=>startHell(3);
 $('b-dexback').onclick=()=>show('p-start');
-$('cut').addEventListener('pointerdown',skipCut);
+$('cut').addEventListener('pointerdown',advanceCut);
 $('skbtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();castSkill();});
 $('skbtn2').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();castPossess();});
 $('skbtn3').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();castJut();});
