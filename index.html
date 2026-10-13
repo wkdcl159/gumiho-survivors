@@ -266,7 +266,11 @@ dl.stats dd{margin:4px 0 0;font-family:var(--display);font-size:26px;color:var(-
 .lgform input:focus{border-color:#ffd75e}
 .lgform input[hidden]{display:none}
 .lgwarn{margin:0 0 10px;font-family:var(--display);font-size:15px;color:#ff2d2d;text-shadow:0 0 8px rgba(255,40,40,.45)}
-#lb-title.gold,.rkr .nm small.gold,.ttc.gold span{color:#ffd23a!important;text-shadow:0 0 8px rgba(255,190,40,.8),0 1px 0 rgba(90,50,0,.8)}
+#lb-title.gold,.rkr .nm small.gold,.ttc.gold span{color:#ffd23a!important;background:linear-gradient(100deg,#ffb300 20%,#fff6c0 38%,#ffd23a 50%,#fff6c0 62%,#ffb300 80%) 0/250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:goldsh 2.4s linear infinite;filter:drop-shadow(0 0 5px rgba(255,190,40,.8))}
+@keyframes goldsh{0%{background-position:150% 0}100%{background-position:-50% 0}}
+#lb-title.bronze,.rkr .nm small.bronze,.ttc.bronze span{color:#c0763a!important;text-shadow:0 1px 0 rgba(40,18,0,.8);animation:none;-webkit-text-fill-color:currentColor;background:none;filter:none}
+.ttc.bronze{border-color:#8a5628}
+@media (prefers-reduced-motion:reduce){#lb-title.gold,.rkr .nm small.gold,.ttc.gold span{animation:none}}
 .ttc.gold{border-color:#c9a02a;background:linear-gradient(rgba(60,40,0,.55),rgba(10,8,30,.7))}
 #lb-lv{display:inline-block;margin-left:6px;vertical-align:middle;font-family:var(--display);font-size:16px;line-height:1;color:#ffd75e;text-shadow:0 2px 0 rgba(0,0,0,.7),0 0 12px rgba(255,180,50,.7);letter-spacing:1px}
 .rkr.first{box-shadow:0 0 14px rgba(255,210,60,.55)}
@@ -2639,10 +2643,16 @@ const BEST0={time:0,kills:0,lvl:0};
 let BEST=Object.assign({},BEST0);
 let BD=[{t:0,k:0},{t:0,k:0},{t:0,k:0}];
 let TOP={d0:false,d1:false,d2:false,lv:false};
+let TN={d0:false,d1:false,d2:false,lv:false};
+let tnLast=0;
+const TF={top0:'d0',top1:'d1',top2:'d2',toplv:'lv'};
+const topCls=a=>!a||!a.gold?'':(TN[TF[a.k]]?'gold':'bronze');
 function loadBD(){
   BD=[{t:0,k:0},{t:0,k:0},{t:0,k:0}];TOP={d0:false,d1:false,d2:false,lv:false};
   try{const b=JSON.parse(localStorage.getItem('gumiho-bestd'+PK)||'null');if(Array.isArray(b))for(let i=0;i<3;i++)if(b[i])BD[i]={t:+b[i].t||0,k:+b[i].k||0};}catch(_){}
   try{const t=JSON.parse(localStorage.getItem('gumiho-top'+PK)||'null');if(t)for(const k in TOP)TOP[k]=!!t[k];}catch(_){}
+  TN=Object.assign({},TOP);
+  try{const t=JSON.parse(localStorage.getItem('gumiho-topnow'+PK)||'null');if(t)for(const k in TN)TN[k]=!!t[k]&&TOP[k];}catch(_){}
 }
 function loadBest(){loadBD();BEST=Object.assign({},BEST0);try{const b=JSON.parse(localStorage.getItem('gumiho-best'+PK)||'null');if(b)BEST=Object.assign({},BEST0,b);}catch(_){}}
 loadBest();
@@ -3204,11 +3214,11 @@ function paintDot(){
   d.hidden=!have.some(k=>!seen.includes(k));
 }
 function ttMarkSeen(){ttSeenSave(TITLES.filter(a=>a.ok()).map(a=>a.k));paintDot();}
-function paintTitle(){const a=TITLES.find(x=>x.k===ttKey());$('lb-title').textContent=a.k==='t0'?'':a.n;$('lb-title').classList.toggle('gold',!!a.gold);paintDot();}
+function paintTitle(){const a=TITLES.find(x=>x.k===ttKey());$('lb-title').textContent=a.k==='t0'?'':a.n;{const c=topCls(a);$('lb-title').classList.toggle('gold',c==='gold');$('lb-title').classList.toggle('bronze',c==='bronze');}paintDot();}
 function paintTtList(){
   const g=$('tt-list'),cur=ttKey();g.innerHTML='';
   for(const a of TITLES){
-    const ok=a.ok(),b=document.createElement('button');b.type='button';b.className='ttc'+(a.gold?' gold':'')+(ok?'':' lock')+(a.k===cur?' on':'');
+    const ok=a.ok(),b=document.createElement('button');b.type='button';b.className='ttc'+(a.gold?' '+topCls(a):'')+(ok?'':' lock')+(a.k===cur?' on':'');
     b.innerHTML='<span>'+(ok?'':'🔒 ')+a.n+'</span><small>'+a.d+'</small>';
     b.onclick=()=>{
       if(!ok){$('tt-hint').textContent='🔒 '+a.d+'하면 열려요';return;}
@@ -3324,7 +3334,7 @@ const RK_MAX={t:21600,k:500000,exp:3000000};
 let rkTab=1;
 function rankDoc(){
   const cl=(v,m)=>Math.max(0,Math.min(m,Math.floor(+v||0)));
-  const d={nick:String(getNick()).slice(0,12),av:avKey(),title:ttKey(),exp:cl(accGet(),RK_MAX.exp),u:Date.now()};
+  const d={nick:String(getNick()).slice(0,12),av:avKey(),title:ttKey(),exp:cl(accGet(),RK_MAX.exp),tops:{d0:!!TN.d0,d1:!!TN.d1,d2:!!TN.d2,lv:!!TN.lv},u:Date.now()};
   let any=d.exp>0;
   for(let i=0;i<3;i++)if(BD[i].t>0){d['t'+i]=cl(BD[i].t,RK_MAX.t);d['k'+i]=cl(BD[i].k,RK_MAX.k);any=true;}
   return any?d:null;
@@ -3336,17 +3346,21 @@ const RK_NAME=['쉬움','보통','어려움','레벨'];
 async function openRank(){
   show('p-rank');rkTab=1;rkTabs();await loadRank();
 }
-async function checkTops(fb){
+async function checkTops(fb,force){
   try{
     const u=fb.auth.currentUser;if(!u)return;
-    const keys=['d0','d1','d2','lv'];let ch=false;
+    if(!force&&Date.now()-tnLast<45000)return;
+    tnLast=Date.now();
+    const keys=['d0','d1','d2','lv'];let chTop=false,chNow=false;
     for(let i=0;i<4;i++){
-      if(TOP[keys[i]])continue;
       const snap=await fb.db.collection('ranks2').orderBy(RK_FIELD[i],'desc').limit(1).get();
       let hit=false;snap.forEach(doc=>{const d=doc.data();if(doc.id===u.uid&&(d[RK_FIELD[i]]||0)>0)hit=true;});
-      if(hit){TOP[keys[i]]=true;ch=true;toast('랭킹 1위! 칭호 획득: '+TITLES.find(x=>x.k==='top'+(i===3?'lv':i)).n);}
+      if(hit&&!TOP[keys[i]]){TOP[keys[i]]=true;chTop=true;toast('랭킹 1위! 칭호 획득: '+TITLES.find(x=>x.k==='top'+(i===3?'lv':i)).n);}
+      if(TN[keys[i]]!==hit){TN[keys[i]]=hit;chNow=true;}
     }
-    if(ch){try{localStorage.setItem('gumiho-top'+PK,JSON.stringify(TOP));}catch(_){}paintTitle();}
+    if(chTop){try{localStorage.setItem('gumiho-top'+PK,JSON.stringify(TOP));}catch(_){}}
+    if(chNow){try{localStorage.setItem('gumiho-topnow'+PK,JSON.stringify(TN));}catch(_){}}
+    if(chTop||chNow){paintTitle();try{paintTtList();}catch(_){}}
   }catch(e){console.warn('top check failed',e);}
 }
 async function loadRank(){
@@ -3366,12 +3380,17 @@ async function loadRank(){
       const sc=lv?'<span class="sc lvs">Lv.'+accLv(d.exp||0)+'<small>'+(d.exp||0).toLocaleString()+' EXP</small></span>':'<span class="sc">'+fmtT(d[f]||0)+'<small>처치 '+(d['k'+ti]||0)+'</small></span>';
       r.innerHTML='<span class="no">'+medal+'</span><span class="pic" style="background-image:url('+a.src+')"></span><span class="nm"></span>'+sc;
       const nm=r.querySelector('.nm');nm.textContent=d.nick||'이름 없음';
-      if(tt&&tt.k!=='t0'){const sm=document.createElement('small');sm.textContent=tt.n;if(tt.gold)sm.className='gold';nm.prepend(sm);}
+      if(tt&&tt.k!=='t0'){const sm=document.createElement('small');sm.textContent=tt.n;
+        if(tt.gold){let cur;const mt=['top0','top1','top2','toplv'].indexOf(tt.k)===ti;
+          if(mt)cur=n===1;else cur=!!(d.tops&&d.tops[TF[tt.k]]);
+          if(isMe)cur=!!TN[TF[tt.k]];
+          sm.className=cur?'gold':'bronze';}
+        nm.prepend(sm);}
       box.appendChild(r);
     });
     if(!n)box.innerHTML='<p class="hint" style="margin:14px 0">아직 등록된 기록이 없어요. 첫 번째 주인공이 되어 보세요!</p>';
     me.textContent=isG()?(mine?'내 순위: '+mine+'위':'내 기록이 아직 50위 안에 없어요.'):'랭킹에 등록하려면 구글로 로그인하세요.';
-    if(isG())checkTops(fb);
+    if(isG())checkTops(fb,true);
   }catch(e){
     const c=(e&&e.code)||'';
     box.innerHTML='<p class="hint" style="margin:14px 0">'+(c==='permission-denied'?'랭킹 읽기 권한이 없어요. (Firestore 규칙을 확인하세요)':c==='failed-precondition'?'랭킹을 만드는 중이에요. 잠시 뒤 다시 열어 주세요.':'랭킹을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.')+'</p>';
