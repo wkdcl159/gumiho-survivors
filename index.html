@@ -59,6 +59,13 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .chip.pas{background:var(--ink-2);border:1.5px solid var(--foxfire);color:var(--foxfire)}
 .chip b{position:absolute;right:-5px;bottom:-6px;font-family:var(--display);font-size:11px;font-weight:400;background:var(--paper);color:var(--brown);border-radius:8px;padding:0 5px;line-height:15px}
 
+#tut{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:60;width:min(560px,calc(100vw - 32px));box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(#2c2150ee,#1a1233ee);border:2px solid #ffd75e;box-shadow:0 0 18px rgba(255,200,80,.45);color:#fff3d8;font-size:15px;line-height:1.5}
+#tut[hidden]{display:none}
+#tut.top{bottom:auto;top:12px}
+#tut small{display:block;color:#ffd75e;font-size:11px;margin-bottom:2px}
+#tut b{color:#ffd75e}
+#tut kbd{background:rgba(255,255,255,.18);border-radius:4px;padding:0 5px;font-size:13px}
+#tut button{flex:none;font:inherit;font-size:12px;color:#d9ccff;background:none;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:5px 9px;cursor:pointer}
 #toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);font-family:var(--display);font-size:26px;color:var(--paper);text-shadow:0 3px 0 rgba(0,0,0,.5);opacity:0;pointer-events:none;z-index:30;text-align:center;padding:0 16px}
 #toast.on{opacity:1;transition:opacity .15s}
 #toast:not(.on){transition:opacity .6s}
@@ -354,6 +361,7 @@ button.prof{font:inherit;cursor:pointer;position:relative}
   <div id="cut-box"><span class="nm" id="cut-nm">달기</span><p id="cut-text"></p><small id="cut-hint">탭하면 건너뜁니다</small></div>
 </div>
 <div id="toast"></div>
+<div id="tut" hidden><div><small id="tut-n"></small><span id="tut-t"></span></div><button type="button" id="tut-x">건너뛰기</button></div>
 
 <canvas id="lobbyfx"></canvas>
 <div id="intro"><div id="in-moon"></div><img id="in-fox" alt=""><div id="in-embers"></div><p id="in-line"></p><div id="in-touch">화면을 터치하세요</div><small id="in-skip">건너뛰기 ›</small></div>
@@ -541,8 +549,8 @@ const MON={
   mwisp:{name:'멸혼불',desc:'멸연옥에서 태어난 보랏빛 혼불. 불규칙하게 흔들리며 빠르게 달려든다.',when:'멸연옥에서'},
   mgob:{name:'멸옥사자',desc:'이마에 세 번째 눈이 뜨인 멸연옥의 문지기. 몸을 웅크렸다가 순식간에 덮친다.',when:'멸연옥에서'},
   megg:{name:'공허귀신',desc:'갈라진 껍질 틈으로 텅 빈 우주가 보이는 귀신. 느리지만 맷집이 아주 단단하다.',when:'멸연옥에서'},
-  jutan:{name:'주탄동자',desc:'두억시니의 여동생이자 연옥의 술꾼. 술기운 오른 압도적인 불길로 모든 것을 태우고, 검은 손으로 붙잡아 내던진다.',when:'연옥 광폭화 후 1분'},
-  boss:{name:'두억시니',desc:'밤의 우두머리인 사나운 귀신. 쓰러뜨리면 2분 뒤 더 강해져서 돌아온다. (총 3단계)',when:'2분 → 1분 45초 → 1분 30초'}
+  jutan:{name:'주탄동자',title:'연옥의 심판자',desc:'연옥의 심판자. 술꾼처럼 비틀거리지만 술기운 오른 압도적인 불길로 모든 것을 태우고, 검은 손으로 붙잡아 내던진다.',when:'연옥 광폭화 후 1분'},
+  boss:{name:'두억시니',title:'지옥의 여제',desc:'지옥의 여제. 지옥의 우두머리인 사나운 귀신으로, 쓰러뜨리면 2분 뒤 더 강해져서 돌아온다. (총 3단계)',when:'2분 → 1분 45초 → 1분 30초'}
 };
 let PK='';try{const c=localStorage.getItem('gumiho-cur');if(c)PK='@'+c;}catch(_){}
 let DEX={seen:{},kills:{}};
@@ -926,7 +934,7 @@ function endPossess(){
 function showStage(n){
   const sg=$('stg');
   sg.className=n===3?'void':'';
-  sg.innerHTML=n===3?'<small>제3막</small><b>멸연옥</b><em>모든 것이 멸한 땅, 공허의 귀신들이 깨어납니다</em>':'<small>제2막</small><b>연옥</b><em>더 강한 귀신들이 몰려옵니다</em>';
+  sg.innerHTML=n===3?'<small>제3막</small><b>멸연옥</b><em>이곳의 주인 염라가 기다립니다</em>':n===1?'<small>제1막</small><b>지옥</b><em>지옥의 여제 두억시니가 다스리는 땅</em>':'<small>제2막</small><b>연옥</b><em>연옥의 심판자 주탄동자가 기다립니다</em>';
   sg.hidden=false;void sg.offsetWidth;sg.classList.add('on');setTimeout(()=>{sg.hidden=true;},4200);
 }
 function spawnJutan(x,y){
@@ -1458,7 +1466,7 @@ function endCut(){
   s.state='play';s.cut=null;
   updateHud();
   if(C.str>0)s.p.inv=Math.max(s.p.inv,.8);
-  if(C===CUTS.intro)toast('꼬리 3개에 여우불 해금');
+  if(C===CUTS.intro||C===CUTS.introStory){toast('꼬리 3개에 여우불 해금');showStage(1);if(C===CUTS.introStory)tutStart();}
   if(C.jutd)toast('주탄 빙의 해금! R키 또는 위쪽 버튼');
   if(C.oniHelp&&!C.merge)toast('빙의 해금! E키 또는 왼쪽 버튼');
   if(C===CUTS.t3)toast('여우불 해금! (Space / Q)');
@@ -1933,6 +1941,11 @@ const rgba=(h,a)=>{const n=parseInt(h.slice(1),16);return 'rgba('+(n>>16)+','+((
 const CUTS={
   intro:{str:0,from:0,to:0,fl:0,tl:0,text:'내 이름은 달기야.',tt:[.3,1.2],end:2.8,
     ev:[{t:1.4,k:'wave',dmg:8,kb:60}]},
+  introStory:{str:0,from:0,to:0,fl:0,tl:0,speaker:'달기',text:'',
+    lines:[{who:'dalgi',text:'…여기가 지옥의 입구구나.',t0:.5,dur:1.8},
+           {who:'dalgi',text:'동생이 이 어딘가에 갇혀 있어. 반드시 찾아낼 거야.',t0:2.9,dur:2.8},
+           {who:'dalgi',text:'지옥, 연옥, 그리고 멸연옥… 끝까지 가 줄게!',t0:6.4,dur:2.6}],
+    ev:[{t:9.8,k:'wave',dmg:8,kb:60}],end:10.8},
   t3:{str:1,from:0,to:1,noForm:true,fl:0,tl:1,text:'뭔가 할수있을거 같아!',tt:[.3,1.5],end:3.8,
     ev:[{t:1.8,k:'transform'},{t:1.8,k:'flash',v:.9},{t:1.8,k:'shake',v:.35},{t:1.8,k:'burst',n:32},
         {t:1.8,k:'wave',dmg:40,kb:220},{t:2.2,k:'wave',dmg:40,kb:260}]},
@@ -2071,7 +2084,7 @@ function jutCut1(){
 }
 function jutCut2(){
   return {jut2:true,bl:3,str:1,from:0,to:3,speaker:'주탄동자',
-    lines:[{who:'jut',text:'나야 주탄동자~ 두억시니 여동생!',t0:.7,dur:2.4}],text:'',
+    lines:[{who:'jut',text:'나야 주탄동자~ 연옥의 심판자란다!',t0:.7,dur:2.4}],text:'',
     ev:[{t:3.4,k:'jspawn'},{t:3.4,k:'flash',v:1},{t:3.4,k:'shake',v:.6},{t:3.4,k:'burst',n:60}],end:5.0};
 }
 function jutDieCut(){
@@ -2088,7 +2101,7 @@ function hellCut(){
 }
 function bossCut(st,first){
   const bl=BOSS[st-1].bl,T=st===3?2.7:1.9+bl*.12;
-  const text=['맛있어 보이는 꼬마 여우구나.','연옥에서~ 누가 돌아왔게?','나 44대 연옥의 여제 강림이시다!'][st-1];
+  const text=['맛있어 보이는 꼬마 여우구나.','지옥에서~ 누가 돌아왔게?','나 44대 지옥의 여제 강림이시다!'][st-1];
   return {bossStage:st,bl,str:1,from:0,to:3,speaker:'두억시니',
     text,tt:[.4,st===3?2.3:1.7],end:T+(st===3?1.9:1.5),
     ev:[{t:T,k:'bspawn'},{t:T,k:'flash',v:.6+bl*.15},{t:T,k:'shake',v:.35+bl*.12},{t:T,k:'burst',n:20+bl*14}]};
@@ -2099,7 +2112,7 @@ function bossDeathCut(st,x,y){
     ev:[{t:.1,k:'shake',v:.35},{t:.1,k:'flash',v:.5},{t:.1,k:'burst',n:40}]};
   if(st===1)return Object.assign(base,{text:'다시 돌아오겠다!',tt:[.3,1.2],end:2.7});
   if(st===2)return Object.assign(base,{lines:[
-    {who:'boss',text:'감히 연옥의 여제인 나를!',t0:.3,dur:1.5},
+    {who:'boss',text:'감히 지옥의 여제인 나를!',t0:.3,dur:1.5},
     {who:'dalgi',text:'여제?..',t0:2.3,dur:.9}],text:'',end:4.6});
   return Object.assign(base,{text:'인정한다.',tt:[.3,1.1],end:3.6,
     ev:[{t:.1,k:'shake',v:.6},{t:.1,k:'flash',v:1},{t:.1,k:'burst',n:90}]});
@@ -2577,7 +2590,7 @@ function updateHud(){
    $('skcd3').textContent=jp.on?Math.ceil(jp.t):jp.cd>0?Math.ceil(jp.cd):'';
    }
   $('bossbar').hidden=!bs;
-  if(bs){const jt=bs.type==='jutan';$('bfill').style.width=Math.max(0,bs.hp/bs.max*100)+'%';$('bname').textContent=jt?'주탄동자':'두억시니';$('bstage').textContent=jt?'':bs.stage+'단계';}
+  if(bs){const jt=bs.type==='jutan';$('bfill').style.width=Math.max(0,bs.hp/bs.max*100)+'%';$('bname').textContent=jt?'연옥의 심판자 주탄동자':'지옥의 여제 두억시니';$('bstage').textContent=jt?'':bs.stage+'단계';}
   const n=tails();for(let i=0;i<9;i++)tailEls[i].classList.toggle('on',i<n);
 }
 function fillStats(id){
@@ -2664,7 +2677,7 @@ $('b-sndback').addEventListener('click',()=>show(sndFrom));
 applyVol();
 let pvBusy=false,pvTm=0,pvRun=false;
 const PV_IN=.5,PV_HOLD=.6,PV_BURN=1.2,PV_END=PV_IN+PV_HOLD+PV_BURN+.15;
-function begin(){pvBusy=false;pvRun=false;clearTimeout(pvTm);const pv=$('pv');pv.classList.remove('on');setTimeout(()=>{pv.hidden=true;},360);newGame();hideOv();startCut('intro');}
+function begin(){pvBusy=false;pvRun=false;clearTimeout(pvTm);const pv=$('pv');pv.classList.remove('on');setTimeout(()=>{pv.hidden=true;},360);newGame();hideOv();startCut(tutOn()?'introStory':'intro');}
 function pvLoop(t0,fl,last){
   if(!pvRun)return;
   const now=performance.now(),k=(now-t0)/1000,dt=Math.min(.05,(now-last)/1000),pv=$('pv'),im=$('pv-img'),cv=$('pv-fx'),g=cv.getContext('2d');
@@ -2833,7 +2846,7 @@ function lbRefresh(){
   for(const id of ['lb-hell','nv-hell'])$(id).classList.toggle('lock',lk);
   $('lb-hell').firstChild.textContent=lk?'🔒':'🔥';
 }
-const SAYS=['오늘 밤도 귀신들이 몰려오겠구나… 후훗.','꼬리가 근질근질해~ 슬슬 나가볼까?','두억시니 그 녀석, 아직도 살아 있으려나.','경험치 구슬은 놓치지 말고 챙겨야 해!','꼬리가 많을수록 강해지는 거, 알지?','…누가 날 부른 것 같은데?'];
+const SAYS=['오늘 밤도 귀신들이 몰려오겠구나… 후훗.','꼬리가 근질근질해~ 슬슬 나가볼까?','동생아… 조금만 기다려. 언니가 갈게.','지옥의 여제 두억시니, 그 녀석부터 넘어야지.','경험치 구슬은 놓치지 말고 챙겨야 해!','꼬리가 많을수록 강해지는 거, 알지?','…누가 날 부른 것 같은데?'];
 let sayI=-1;
 function lbSay(txt){
   const b=$('lbsay'),p=$('lbsay-t');
@@ -2847,10 +2860,11 @@ function lbSay(txt){
   b.classList.add('sw');setTimeout(()=>{p.textContent=txt;b.classList.remove('sw');},220);
 }
 const lbGo=()=>{sfxSel();$('b-start').click();};
+$('tut-x').onclick=()=>tutEnd();
 $('lb-go').onclick=()=>$('b-start').click();
 $('nv-go').onclick=()=>$('b-start').click();
 $('lb-dex').onclick=$('nv-dex').onclick=()=>{sfxSel();$('b-dex').click();};
-const hellTap=()=>{if(DEX.hell){sfxSel();$('b-hell').click();}else{lbSay('연옥은 두억시니를 쓰러뜨려야 열려.');const b=$('lbsay');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}};
+const hellTap=()=>{if(DEX.hell){sfxSel();$('b-hell').click();}else{lbSay('연옥은 지옥의 여제 두억시니를 쓰러뜨려야 열려.');const b=$('lbsay');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}};
 $('lb-hell').onclick=$('nv-hell').onclick=hellTap;
 $('nv-home').onclick=()=>lbSay();
 $('hero').onclick=()=>{const h=$('hero');h.classList.remove('hop');void h.offsetWidth;h.classList.add('hop');lbSay();};
@@ -3135,7 +3149,43 @@ $('ac-nsave').onclick=()=>{
 paintNick();paintAv();paintTitle();
 $('lg-logo').src=LOGO_SRC;
 // ---- 인트로 ----
-const IN_LINES=['천 년을 살아온 아홉 꼬리 여우, 달기.','그녀의 밤은 언제나 귀신들의 울음으로 가득했다.','두억시니가 깨어나는 오늘 밤… 달기는 다시 꼬리를 편다.'];
+const IN_LINES=['천 년을 살아온 아홉 꼬리 여우, 달기.','어느 날 밤, 사랑하는 동생이 사라졌다.','지옥, 연옥, 그리고 멸연옥… 달기는 동생을 찾아 꼬리를 편다.'];
+const tutOn=()=>{try{return localStorage.getItem('gumiho-tut')!=='1';}catch(_){return false;}};
+const tutSave=()=>{try{localStorage.setItem('gumiho-tut','1');}catch(_){}};
+const TUT=[
+  {t:'<b>이동</b> 화면을 드래그하거나 <kbd>WASD</kbd> / 방향키로 움직여요.',ok:s=>Math.hypot(s.p.x-TUTST.x,s.p.y-TUTST.y)>160},
+  {t:'<b>공격은 자동!</b> 달기가 알아서 쏴요. 귀신을 3마리 처치해 보세요.',ok:s=>s.kills>=3},
+  {t:'귀신이 떨어뜨린 <b>푸른 경험치 구슬</b>을 모으면 레벨업해요.',ok:s=>s.lvl>=2||s.state==='levelup'},
+  {t:'<b>카드를 한 장 고르세요.</b> 등급이 높을수록 한 번에 더 많이 강해져요. (일반 +1 · 레어 +2 · 울트라 +3)',ok:s=>s.state==='play'&&TUTLV,lv:1},
+  {t:'레벨이 오르면 <b>꼬리가 늘어나요.</b> 꼬리 3개가 되면 큰 기술을 쓸 수 있어요.',ok:s=>!!s.t3||s.form>=1},
+  {t:'<b>Space</b> 키나 오른쪽 아래 <b>雪/狐 버튼</b>으로 큰 기술을 써 보세요!',ok:s=>s.skCd>0},
+  {t:'<b>체력이 0이 되면 끝!</b> 지옥의 여제 두억시니를 쓰러뜨리면 연옥으로 가는 길이 열려요. 동생을 찾아 끝까지 가요.',ok:null,hold:7}
+];
+let TUTI=-1,TUTST={x:0,y:0},TUTLV=false,TUTT=0,tutTm=null;
+function tutStart(){
+  if(!tutOn())return;
+  TUTI=0;TUTLV=false;TUTT=0;TUTST={x:S.p.x,y:S.p.y};tutShow();
+  clearInterval(tutTm);tutTm=setInterval(tutTick,200);
+}
+function tutShow(){
+  const el=$('tut');if(!el)return;
+  if(TUTI<0||TUTI>=TUT.length){el.hidden=true;return;}
+  $('tut-t').innerHTML=TUT[TUTI].t;$('tut-n').textContent=(TUTI+1)+' / '+TUT.length;el.hidden=false;
+}
+function tutEnd(){TUTI=-1;tutSave();clearInterval(tutTm);const el=$('tut');if(el)el.hidden=true;}
+function tutTick(){
+  const s=S;if(TUTI<0)return;
+  const el=$('tut');
+  if(!s||s.state==='over'||s.state==='start'){tutEnd();return;}
+  if(s.state==='levelup')TUTLV=true;
+  const lvOnly=TUT[TUTI].lv;
+  el.hidden=!(s.state==='play'||(s.state==='levelup'&&lvOnly));
+  el.classList.toggle('top',s.state==='levelup');
+  if(s.state!=='play'&&s.state!=='levelup')return;
+  const st=TUT[TUTI];
+  if(st.ok===null){TUTT+=.2;if(TUTT>=st.hold)tutEnd();return;}
+  if(st.ok(s)){TUTI++;TUTT=0;TUTST={x:s.p.x,y:s.p.y};if(TUTI>=TUT.length)tutEnd();else{tutShow();sfxSel();}}
+}
 let inDone=false;
 function closeIntro(){
   if(inDone)return;inDone=true;
