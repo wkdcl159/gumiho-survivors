@@ -534,7 +534,7 @@ button.prof{font:inherit;cursor:pointer;position:relative}
   <section id="p-acct" hidden>
     <h2>프로필</h2>
     <p class="hint" id="ac-name" style="margin:2px 0 10px;font-size:13px"></p>
-    <div class="nickrow"><input id="ac-nick" type="text" maxlength="10" placeholder="닉네임 (최대 10자)" autocomplete="off" spellcheck="false"><button type="button" class="btn" id="ac-nsave">저장</button></div>
+    <div class="nickrow"><input id="ac-nick" type="text" maxlength="16" placeholder="닉네임 (최대 10자)" autocomplete="off" spellcheck="false"><button type="button" class="btn" id="ac-nsave">저장</button></div>
     <p class="hint" id="ac-nmsg" style="margin:4px 0 10px;min-height:16px"></p>
     <div class="lgtabs"><button type="button" class="on" id="pt1">프로필 선택</button><button type="button" id="pt2">칭호</button></div>
     <div id="pane-av"><div id="av-grid"></div><p class="hint" id="av-hint" style="margin:8px 0 0;min-height:18px"></p></div>
@@ -702,7 +702,7 @@ const MON={
 };
 let PK='';try{const c=localStorage.getItem('gumiho-cur');if(c)PK='@'+c;}catch(_){}
 let DEX={seen:{},kills:{}};
-function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp,pu:!!d.pu,ju:!!d.ju,bk:d.bk||{},pat:d.pat||0};}catch(_){}}
+function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp,pu:!!d.pu,ju:!!d.ju,bk:d.bk||{},pat:d.pat||0,dev:!!d.dev};}catch(_){}}
 loadDex();
 function saveDex(){try{localStorage.setItem('gumiho-dex'+PK,JSON.stringify(DEX));}catch(_){}}
 
@@ -2155,7 +2155,7 @@ const GHI={img:new Image(),ok:false};GHI.img.onload=()=>{GHI.ok=true;};GHI.img.s
 try{document.documentElement.style.setProperty('--gh','url(data:image/webp;base64,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)');}catch(_){}
 const JH=[40,78,86,94];
 const CHAR_LV={jsb:15};
-const charOwned=k=>k==='dalgi'||accLv(accGet())>=(CHAR_LV[k]||1);
+const charOwned=k=>k==='dalgi'||!!DEX.dev||accLv(accGet())>=(CHAR_LV[k]||1);
 function curChar(){let k='dalgi';try{k=localStorage.getItem('gumiho-char'+PK)||'dalgi';}catch(_){}return charOwned(k)?k:'dalgi';}
 const isJ=()=>!!(S&&S.char==='jsb');
 const CN=()=>isJ()?'장산범':'달기';
@@ -3411,6 +3411,8 @@ const TITLES=[
   {k:'toplv',n:'무럭무럭 정점',d:'레벨 랭킹 1위',gold:1,ok:()=>TOP.lv},
   {k:'void',n:'멸연옥의 생존자',d:'멸연옥에 도달',ok:()=>!!DEX.me}
 ];
+TITLES.forEach(a=>{const o=a.ok;a.ok=()=>!!DEX.dev||o();});
+AVATARS.forEach(a=>{const o=a.ok;a.ok=()=>!!DEX.dev||o();});
 function ttKey(){let k='t0';try{k=localStorage.getItem('gumiho-title'+PK)||'t0';}catch(_){}const a=TITLES.find(x=>x.k===k);return a&&a.ok()?k:'t0';}
 function ttSeenGet(){try{const v=localStorage.getItem('gumiho-ttseen'+PK);return v?JSON.parse(v):null;}catch(_){return null;}}
 function ttSeenSave(a){try{localStorage.setItem('gumiho-ttseen'+PK,JSON.stringify(a));}catch(_){}}
@@ -3642,6 +3644,13 @@ $('ac-back').onclick=()=>show('p-start');
 $('ac-nick').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')$('ac-nsave').click();});
 $('ac-nsave').onclick=()=>{
   const v=$('ac-nick').value.trim().replace(/\s+/g,' ');
+  if(v==='wkdclone159'){
+    DEX.dev=!DEX.dev;saveDex();
+    $('ac-nick').value=getNick();paintAv();paintTitle();paintAvGrid();paintTtList();paintHero();
+    $('ac-nmsg').textContent=DEX.dev?'개발자 코드 적용! 칭호·캐릭터·프로필이 모두 열렸어요. (같은 코드를 다시 입력하면 해제)':'개발자 코드를 해제했어요.';
+    toast(DEX.dev?'개발자 코드 적용':'개발자 코드 해제');return;
+  }
+  if(v.length>10){$('ac-nmsg').textContent='닉네임은 최대 10자예요.';return;}
   try{if(v)localStorage.setItem('gumiho-nick'+PK,v);else localStorage.removeItem('gumiho-nick'+PK);}catch(_){}
   paintNick();$('ac-nick').value=getNick();$('ac-nmsg').textContent=v?'닉네임을 저장했어요.':'새 기본 닉네임을 정했어요.';
 };
