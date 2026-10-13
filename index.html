@@ -288,6 +288,11 @@ dl.stats dd{margin:4px 0 0;font-family:var(--display);font-size:26px;color:var(-
 .lgform input[hidden]{display:none}
 .lgwarn{margin:0 0 10px;font-family:var(--display);font-size:15px;color:#ff2d2d;text-shadow:0 0 8px rgba(255,40,40,.45)}
 #lb-title.gold,.rkr .nm small.gold,.ttc.gold span{color:#ffd23a!important;background:linear-gradient(100deg,#ffb300 20%,#fff6c0 38%,#ffd23a 50%,#fff6c0 62%,#ffb300 80%) 0/250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:goldsh 2.4s linear infinite;filter:drop-shadow(0 0 5px rgba(255,190,40,.8))}
+#lb-title.tc-w,.rkr .nm small.tc-w,.ttc.tc-w span{color:#fff!important}
+#lb-title.tc-o,.rkr .nm small.tc-o,.ttc.tc-o span{color:#c99bff!important;text-shadow:0 0 8px rgba(170,100,255,.7)}
+.ttc.tc-o{border-color:#8a5bd0}
+#lb-title.tc-j,.rkr .nm small.tc-j,.ttc.tc-j span{color:#ff5a48!important;text-shadow:0 0 8px rgba(255,60,40,.65)}
+.ttc.tc-j{border-color:#c0402c}
 @keyframes goldsh{0%{background-position:150% 0}100%{background-position:-50% 0}}
 #lb-title.bronze,.rkr .nm small.bronze,.ttc.bronze span{color:#c0763a!important;text-shadow:0 1px 0 rgba(40,18,0,.8);animation:none;-webkit-text-fill-color:currentColor;background:none;filter:none}
 .ttc.bronze{border-color:#8a5628}
@@ -3292,10 +3297,10 @@ const TITLES=[
   {k:'hunt',n:'귀신 사냥꾼',d:'한 판에 귀신 100마리 처치',ok:()=>BEST.kills>=100},
   {k:'surv',n:'버티는 여우',d:'10분 이상 생존',ok:()=>BEST.time>=600},
   {k:'nine',n:'꼬리 아홉 달린 여우',d:'꼬리 9개 달성 (레벨 17)',ok:()=>BEST.lvl>=17},
-  {k:'oni',n:'두억시니를 마주한 자',d:'두억시니 최종 단계를 만남',ok:()=>(DEX.stage||0)>=3},
-  {k:'merge',n:'하나가 된 둘',d:'두억시니 빙의를 사용',ok:()=>!!DEX.pu},
+  {k:'oni',c:'o',n:'두억시니를 마주한 자',d:'두억시니 최종 단계를 만남',ok:()=>(DEX.stage||0)>=3},
+  {k:'merge',c:'o',n:'하나가 된 둘',d:'두억시니 빙의를 사용',ok:()=>!!DEX.pu},
   {k:'hell',n:'연옥의 방문자',d:'연옥에 도달',ok:()=>!!DEX.hell},
-  {k:'jut',n:'술 취한 불꽃',d:'주탄동자 빙의를 사용',ok:()=>!!DEX.ju},
+  {k:'jut',c:'j',n:'술 취한 불꽃',d:'주탄동자 빙의를 사용',ok:()=>!!DEX.ju},
   {k:'top0',n:'순탄한 정점',d:'쉬움 난이도 랭킹 1위',gold:1,ok:()=>TOP.d0},
   {k:'top1',n:'의기양양한 1위',d:'보통 난이도 랭킹 1위',gold:1,ok:()=>TOP.d1},
   {k:'top2',n:'압도적 정점',d:'어려움 난이도 랭킹 1위',gold:1,ok:()=>TOP.d2},
@@ -3312,11 +3317,12 @@ function paintDot(){
   d.hidden=!have.some(k=>!seen.includes(k));
 }
 function ttMarkSeen(){ttSeenSave(TITLES.filter(a=>a.ok()).map(a=>a.k));paintDot();}
-function paintTitle(){const a=TITLES.find(x=>x.k===ttKey());$('lb-title').textContent=a.k==='t0'?'':a.n;{const c=topCls(a);$('lb-title').classList.toggle('gold',c==='gold');$('lb-title').classList.toggle('bronze',c==='bronze');}paintDot();}
+const tcol=a=>a.gold?'':a.c==='o'?'tc-o':a.c==='j'?'tc-j':'tc-w';
+function paintTitle(){const a=TITLES.find(x=>x.k===ttKey());$('lb-title').textContent=a.k==='t0'?'':a.n;{const c=topCls(a);$('lb-title').classList.toggle('gold',c==='gold');$('lb-title').classList.toggle('bronze',c==='bronze');const tc=tcol(a);['tc-w','tc-o','tc-j'].forEach(x=>$('lb-title').classList.toggle(x,x===tc));}paintDot();}
 function paintTtList(){
   const g=$('tt-list'),cur=ttKey();g.innerHTML='';
   for(const a of TITLES){
-    const ok=a.ok(),b=document.createElement('button');b.type='button';b.className='ttc'+(a.gold?' '+topCls(a):'')+(ok?'':' lock')+(a.k===cur?' on':'');
+    const ok=a.ok(),b=document.createElement('button');b.type='button';b.className='ttc'+(a.gold?' '+topCls(a):' '+tcol(a))+(ok?'':' lock')+(a.k===cur?' on':'');
     b.innerHTML='<span>'+(ok?'':'🔒 ')+a.n+'</span><small>'+a.d+'</small>';
     b.onclick=()=>{
       if(!ok){$('tt-hint').textContent='🔒 '+a.d+'하면 열려요';return;}
@@ -3482,7 +3488,7 @@ async function loadRank(){
         if(tt.gold){let cur;const mt=['top0','top1','top2','toplv'].indexOf(tt.k)===ti;
           if(mt)cur=n===1;else cur=!!(d.tops&&d.tops[TF[tt.k]]);
           if(isMe)cur=!!TN[TF[tt.k]];
-          sm.className=cur?'gold':'bronze';}
+          sm.className=cur?'gold':'bronze';}else sm.className=tcol(tt);
         nm.prepend(sm);}
       box.appendChild(r);
     });
