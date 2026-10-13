@@ -132,7 +132,12 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .rwc.open{border-color:#ffd75e;box-shadow:0 0 14px rgba(255,200,80,.5)}
 .rwc.open small{color:#fff3c8}
 .accbar{cursor:pointer}
-.accbar::after{content:'보상 ▸';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:11px;color:#ffe9a8;text-shadow:0 1px 2px #000;pointer-events:none}
+#lb-rew{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px;padding:8px 14px;font-family:var(--display);font-size:16px;letter-spacing:1px;color:#4a2200;border:2px solid #fff3c4;border-radius:999px;cursor:pointer;overflow:hidden;background:linear-gradient(#ffe9a0,#ffb73c 55%,#f07a1a);box-shadow:0 4px 0 #a14a0a,0 0 14px rgba(255,190,70,.55);text-shadow:0 1px 0 rgba(255,255,255,.55);transition:transform .12s,box-shadow .12s}
+#lb-rew:hover{transform:translateY(-2px);box-shadow:0 6px 0 #a14a0a,0 0 20px rgba(255,200,80,.8)}
+#lb-rew:active{transform:translateY(3px);box-shadow:0 1px 0 #a14a0a}
+#lb-rew::after{content:'';position:absolute;top:0;bottom:0;width:36px;left:-60px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:rewshine 3.2s ease-in-out infinite}
+@keyframes rewshine{0%,55%{left:-60px}100%{left:115%}}
+@media (prefers-reduced-motion:reduce){#lb-rew::after{animation:none;display:none}}
 #p-diff h2{font-family:var(--display);letter-spacing:4px}
 
 h1{font-family:var(--display);font-weight:400;font-size:clamp(64px,16vw,120px);line-height:1;margin:0;color:var(--fire);text-shadow:0 5px 0 rgba(0,0,0,.45)}
@@ -434,7 +439,7 @@ button.prof{font:inherit;cursor:pointer;position:relative}
 <div id="ov" class="on lobbybg">
   <section id="p-start">
     <div id="lbtop">
-      <div id="lbpw"><button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><i class="rdot" id="lb-dot" hidden></i><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button><div class="accbar"><i id="acc-fill"></i><b id="acc-t"></b></div></div>
+      <div id="lbpw"><button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><i class="rdot" id="lb-dot" hidden></i><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button><div class="accbar"><i id="acc-fill"></i><b id="acc-t"></b></div><button type="button" id="lb-rew"><span>🎁</span>레벨 보상 받기</button></div>
       <div class="pill" id="lb-time">⏱ —</div>
       <div class="pill" id="lb-kill">☠ —</div>
       <button class="rnd b-snd" id="lb-set" type="button" aria-label="사운드 설정">⚙</button>
@@ -3101,7 +3106,7 @@ function openRew(){
   show('p-rew');
 }
 $('rew-back').onclick=()=>show('p-start');
-$('acc-fill').parentNode.onclick=openRew;
+$('acc-fill').parentNode.onclick=openRew;$('lb-rew').onclick=openRew;
 $('diff-back').onclick=()=>show('p-start');
 $('lb-go').onclick=openDiff;
 $('nv-go').onclick=openDiff;
