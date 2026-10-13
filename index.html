@@ -697,7 +697,7 @@ const MON={
 };
 let PK='';try{const c=localStorage.getItem('gumiho-cur');if(c)PK='@'+c;}catch(_){}
 let DEX={seen:{},kills:{}};
-function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp,pu:!!d.pu,ju:!!d.ju};}catch(_){}}
+function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp,pu:!!d.pu,ju:!!d.ju,bk:d.bk||{}};}catch(_){}}
 loadDex();
 function saveDex(){try{localStorage.setItem('gumiho-dex'+PK,JSON.stringify(DEX));}catch(_){}}
 
@@ -814,6 +814,7 @@ function kill(e){
     if(e.stage>=3){s.b5=true;toast('보라색 뿔 획득!');setTimeout(()=>{try{hornUpd();}catch(_){}},0);}
     s.boss=e.stage>=3?1e9:s.t+(e.stage===1?85:70);
     s.cuts.push(bossDeathCut(e.stage,e.x,e.y));
+    (DEX.bk=DEX.bk||{})[e.stage]=1;saveDex();
     toast('두억시니 '+e.stage+'단계 격파!');
   }else{
     s.gems.push({x:e.x,y:e.y,v:s.stage>=2?Math.ceil(T.xp*1.6):T.xp,m:0});
@@ -3262,6 +3263,7 @@ function afterIntro(){
 }
 
 // ---- 프로필 이미지 ----
+const bossBeat=k=>!!((DEX.bk&&DEX.bk[k])||DEX.hell||(DEX.kills.boss||0)>=k);
 const AVATARS=[
   {k:'t1',n:'달기 · 꼬리 1개',src:FACE[0],ok:()=>true,hint:''},
   {k:'t3',n:'달기 · 꼬리 3개',src:FACE[1],ok:()=>BEST.lvl>=5,hint:'꼬리 3개(레벨 5)에 도달하면 열려요'},
@@ -3269,7 +3271,9 @@ const AVATARS=[
   {k:'t9',n:'달기 · 꼬리 9개',src:FACE[3],ok:()=>BEST.lvl>=17,hint:'꼬리 9개(레벨 17)에 도달하면 열려요'},
   {k:'mg',n:'합체 달기 · 두억시니',src:FACE[4],ok:()=>!!DEX.mg,hint:'두억시니와 합체(빙의)하면 열려요'},
   {k:'jpos',n:'합체 달기 · 주탄',src:FACE[5],ok:()=>!!DEX.jp,hint:'주탄동자를 쓰러뜨리고 빙의를 얻으면 열려요'},
-  {k:'oni',n:'두억시니 · 최종',src:BOSS5_FACE,ok:()=>(DEX.stage||0)>=3,hint:'두억시니 최종 단계를 만나면 열려요'},
+  {k:'oni1',n:'두억시니 · 1단계',src:BOSSF[0],ok:()=>bossBeat(1),hint:'두억시니 1단계를 쓰러뜨리면 열려요'},
+  {k:'oni2',n:'두억시니 · 2단계',src:BOSSF[1],ok:()=>bossBeat(2),hint:'두억시니 2단계를 쓰러뜨리면 열려요'},
+  {k:'oni',n:'두억시니 · 3단계',src:BOSSF[2],ok:()=>bossBeat(3),hint:'두억시니 3단계를 쓰러뜨리면 열려요'},
   {k:'jut',n:'주탄동자',src:JUT_FACE,ok:()=>!!(DEX.seen&&DEX.seen.jutan),hint:'주탄동자를 만나면 열려요'}
 ];
 function randNick(){return 'user'+String(Math.floor(Math.random()*1e6)).padStart(6,'0');}
