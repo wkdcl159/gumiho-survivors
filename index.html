@@ -743,10 +743,12 @@ const magR=()=>60+40*P('magnet');
 const maxHp=()=>100+25*P('vital');
 const tails=()=>Math.min(9,1+Math.floor((S.lvl-1)/2));
 
-const ACC_PER=7500;
+// 레벨 L → L+1 에 필요한 EXP = 3500 + 400*(L-1)
+const accPer=l=>3500+400*(l-1);
+const accBase=l=>(l-1)*3500+200*(l-1)*(l-2);
 const addAe=n=>{S.ae=(S.ae||0)+n*DM().xm;};
 const accGet=()=>{try{return Math.max(0,parseInt(localStorage.getItem('gumiho-acc'+PK)||'0',10)||0);}catch(_){return 0;}};
-const accLv=x=>Math.floor(x/ACC_PER)+1;
+const accLv=x=>{let l=1;while(x>=accBase(l+1))l++;return l;};
 function bankAcc(){
   const s=S;if(!s||s.banked||!s.ae)return 0;
   s.banked=true;const old=accGet(),now=old+s.ae;
@@ -756,9 +758,9 @@ function bankAcc(){
 }
 function paintAcc(){
   const f=$('acc-fill');if(!f)return;
-  const x=accGet(),r=x%ACC_PER;
-  f.style.width=(r/ACC_PER*100)+'%';
-  $('acc-t').textContent='Lv.'+accLv(x)+'  ·  '+r.toLocaleString()+' / '+ACC_PER.toLocaleString()+' EXP';
+  const x=accGet(),L=accLv(x),r=x-accBase(L),per=accPer(L);
+  f.style.width=(r/per*100)+'%';
+  $('acc-t').textContent='Lv.'+L+'  ·  '+r.toLocaleString()+' / '+per.toLocaleString()+' EXP';
   $('lb-lv').textContent='Lv.'+accLv(x);
 }
 function newGame(){
@@ -3206,18 +3208,18 @@ $('bdx-back').onclick=()=>{renderDex();show('p-dex');};
 $('chr-back').onclick=()=>show('p-start');
 $('chd-back').onclick=()=>openChr();
 $('nv-chr').onclick=openChr;
-const REW_N=10,REW_STEP=5;
+const REW_N=10,REW_STEP=5,REW_START=15;
 function openRew(){
   sfxSel();
   const lv=accLv(accGet()),g=$('rew-grid');g.innerHTML='';
   let got=0;
   for(let i=1;i<=REW_N;i++){
-    const need=i*REW_STEP,ok=lv>=need;if(ok)got++;
+    const need=REW_START+(i-1)*REW_STEP,ok=lv>=need;if(ok)got++;
     const c=document.createElement('div');c.className='rwc'+(ok?' open':'');
     c.innerHTML='<span class="pic"><img alt="" src="'+FACE[0]+'">'+(ok?'':'<i class="lk">🔒</i>')+'</span><b>Lv.'+need+'</b><small>'+(ok?'해금 · 캐릭터 준비 중':'레벨 '+need+' 달성 시')+'</small>';
     g.appendChild(c);
   }
-  $('rew-lead').textContent='내 레벨 Lv.'+lv+' · 5레벨마다 새 캐릭터가 열려요 ('+got+' / '+REW_N+')';
+  $('rew-lead').textContent='내 레벨 Lv.'+lv+' · 15레벨부터 5레벨마다 새 캐릭터가 열려요 ('+got+' / '+REW_N+')';
   show('p-rew');
 }
 $('rew-back').onclick=()=>show('p-start');
