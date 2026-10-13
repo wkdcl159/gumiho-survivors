@@ -50,6 +50,13 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 #hpt{font-size:13px;color:var(--paper)}
 .tails{display:flex;gap:3px;align-items:flex-end}
 #tails{margin-top:8px;padding-left:4px}
+.horns{display:flex;gap:7px;align-items:flex-end;margin-top:6px;padding-left:5px}
+.horns svg{display:block;width:13px;height:22px;overflow:visible}
+.horns svg path{fill:rgba(255,255,255,.06);stroke:rgba(200,190,230,.5);stroke-width:1.4}
+.horns svg.on.p path{fill:#a45cff;stroke:#e8d2ff;filter:drop-shadow(0 0 4px #b070ff)}
+.horns svg.on.r path{fill:#ff3a4a;stroke:#ffd0d4;filter:drop-shadow(0 0 4px #ff4a5a)}
+.horns svg.pop{animation:hornpop .7s ease-out}
+@keyframes hornpop{0%{transform:scale(2.2) translateY(-6px);opacity:.2}60%{transform:scale(1.15)}100%{transform:none;opacity:1}}
 .tails i{display:block;width:9px;height:20px;border-radius:50% 50% 50% 50%/75% 75% 25% 25%;border:1.5px solid rgba(255,138,42,.45);transform-origin:50% 100%}
 .tails i.on{border-color:var(--fire);background:linear-gradient(#fff6e3 0 28%,var(--fire) 28%)}
 .tails.big{gap:7px;justify-content:center;margin:18px 0 6px;height:64px}
@@ -418,6 +425,7 @@ button.prof{font:inherit;cursor:pointer;position:relative}
     <div class="l">
       <div class="hpw"><div class="hp"><i id="hpf"></i></div><span id="hpt">100 / 100</span></div>
       <div class="tails" id="tails"></div>
+      <div class="horns" id="horns" title="뿔 게이지"></div>
     </div>
     <div class="c"><div id="time">0:00</div><div id="magt">염력 1:00</div><div id="mag"><i id="magf"></i></div></div>
     <div class="r"><div id="lvt">Lv 1</div><div id="kt">처치 0</div><div id="bt">두억시니 1단계 2:00</div></div>
@@ -773,11 +781,11 @@ function kill(e){
   if(e.type==='jutan'){
     for(let i=0;i<16;i++)s.gems.push({x:e.x+rnd(-50,50),y:e.y+rnd(-50,50),v:T.xp,m:0});
     s.drops.push({x:e.x,y:e.y});s.shake=.6;s.jutPhase=3;s.rage2At=s.t+30;s.jf=[];s.hand=null;s.thr=null;
-    s.cuts.push(jutDieCut());toast('주탄동자 격파!');
+    s.cuts.push(jutDieCut());toast('주탄동자 격파! 붉은 뿔 2개 획득!');setTimeout(()=>{try{hornUpd();}catch(_){}},0);
   }else if(e.type==='boss'){
     for(let i=0;i<8;i++)s.gems.push({x:e.x+rnd(-40,40),y:e.y+rnd(-40,40),v:T.xp,m:0});
     s.drops.push({x:e.x,y:e.y});s.shake=.5;
-    if(e.stage>=3)s.b5=true;
+    if(e.stage>=3){s.b5=true;toast('보라색 뿔 획득!');setTimeout(()=>{try{hornUpd();}catch(_){}},0);}
     s.boss=e.stage>=3?1e9:s.t+(e.stage===1?85:70);
     s.cuts.push(bossDeathCut(e.stage,e.x,e.y));
     toast('두억시니 '+e.stage+'단계 격파!');
@@ -2736,6 +2744,15 @@ function mk(parent,fan){
   return [...parent.children];
 }
 const tailEls=mk($('tails'),false);
+const hornEls=[];
+{const bx=$('horns');for(let i=0;i<5;i++){const e=document.createElementNS('http://www.w3.org/2000/svg','svg');e.setAttribute('viewBox','0 0 14 24');e.innerHTML='<path d="M2.5 23 Q0.5 10 11 1 Q8 10 11.5 23 Z"/>';bx.appendChild(e);hornEls.push(e);}}
+function hornUpd(){
+  const s=S;if(!s)return;
+  const st=[!!s.b5,!!(s.jutPhase===3),!!(s.jutPhase===3),false,false];
+  st.forEach((on,i)=>{const e=hornEls[i];const was=e.classList.contains('on');
+    e.classList.toggle('on',on);e.classList.toggle('p',i===0);e.classList.toggle('r',i===1||i===2);
+    if(on&&!was&&s.t>1){e.classList.remove('pop');void e.getBoundingClientRect();e.classList.add('pop');}});
+}
 function buildLoadout(){
   let h='';
   for(const k in S.w)h+='<div class="chip"><span>'+WDEF[k].seal+'</span><b>'+S.w[k]+'</b></div>';
@@ -2750,6 +2767,7 @@ function updateHud(){
   $('xpf').style.width=(s.xp/s.need*100)+'%';
   $('hpf').style.width=Math.max(0,p.hp/p.max*100)+'%';
   $('hpt').textContent=Math.ceil(Math.max(0,p.hp))+' / '+p.max;
+  try{hornUpd();}catch(_){}
   $('time').textContent=fmt(s.t);
   $('lvt').textContent='Lv '+s.lvl;$('kt').textContent='처치 '+s.kills;
   {
