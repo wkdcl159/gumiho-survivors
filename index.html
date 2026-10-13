@@ -75,11 +75,17 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 #ov.on{display:flex}
 #ov>section{margin:auto;text-align:center;max-width:720px;width:100%}
 #ov>section[hidden]{display:none}
-#lbdiff{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
-#lbdiff button{font:inherit;font-weight:700;font-size:14px;padding:6px 16px;border-radius:999px;border:2px solid rgba(255,255,255,.28);background:rgba(20,14,44,.7);color:#d9ccff;cursor:pointer;transition:transform .12s,box-shadow .12s}
-#lbdiff button:hover{transform:translateY(-2px)}
-#lbdiff button.on{color:#1a1030;background:var(--dc);border-color:#fff;box-shadow:0 0 14px var(--dc)}
-#lbdiff-d{margin:-2px 0 6px;font-size:12px;color:#cdbff0;text-align:center;min-height:16px}
+#diff-list{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.dfc{flex:1 1 170px;max-width:210px;font:inherit;text-align:center;cursor:pointer;color:#f1e6c8;border-radius:16px;padding:16px 12px;background:linear-gradient(#2c2150,#171031);border:3px solid var(--dc);box-shadow:0 0 0 rgba(0,0,0,0);transition:transform .15s,box-shadow .15s}
+.dfc:hover,.dfc:focus-visible{transform:translateY(-5px);box-shadow:0 0 22px var(--dc)}
+.dfc b{display:block;font-family:var(--display);font-size:26px;color:var(--dc);margin-bottom:6px}
+.dfc small{display:block;font-size:12px;line-height:1.55;color:#cfc4ee}
+.dfc em{display:block;font-style:normal;font-size:11px;margin-top:8px;color:#ffd9a0}
+.dfc.on::after{content:'이전 선택';display:block;margin-top:8px;font-size:11px;color:var(--dc)}
+.accbar{position:relative;margin-top:7px;height:24px;border-radius:9px;background:rgba(10,6,28,.75);border:1.5px solid rgba(255,225,150,.7);overflow:hidden}
+.accbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ff9a3c,#ffd75e);display:block;font-size:0;transition:width .6s}
+.accbar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;white-space:nowrap}
+#lbpw{flex:1;min-width:0}#lbpw .prof{width:100%;box-sizing:border-box}
 h1{font-family:var(--display);font-weight:400;font-size:clamp(64px,16vw,120px);line-height:1;margin:0;color:var(--fire);text-shadow:0 5px 0 rgba(0,0,0,.45)}
 h2{font-family:var(--display);font-weight:400;font-size:clamp(34px,8vw,52px);margin:0 0 10px;color:var(--paper)}
 .sub{font-family:var(--display);font-size:clamp(20px,4.5vw,28px);color:var(--paper);margin:6px 0 0}
@@ -373,7 +379,7 @@ button.prof{font:inherit;cursor:pointer;position:relative}
 <div id="ov" class="on lobbybg">
   <section id="p-start">
     <div id="lbtop">
-      <button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><i class="rdot" id="lb-dot" hidden></i><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button>
+      <div id="lbpw"><button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><i class="rdot" id="lb-dot" hidden></i><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button><div class="accbar"><i id="acc-fill"></i><b id="acc-t"></b></div></div>
       <div class="pill" id="lb-time">⏱ —</div>
       <div class="pill" id="lb-kill">☠ —</div>
       <button class="rnd b-snd" id="lb-set" type="button" aria-label="사운드 설정">⚙</button>
@@ -394,7 +400,6 @@ button.prof{font:inherit;cursor:pointer;position:relative}
         <div id="lbsay"><b>달기</b><p id="lbsay-t"></p></div>
       </div>
       <p id="best"></p>
-      <div id="lbdiff"></div><p id="lbdiff-d"></p>
       <button id="lb-go" type="button"><span class="ico">⚔</span>출정</button>
       <p class="hint">이동: WASD / 방향키, 모바일은 화면 드래그 · 공격은 자동<br>스킬: Space 또는 Q, 모바일은 오른쪽 아래 버튼 · P 또는 Esc로 일시정지</p>
       <nav id="lbnav">
@@ -465,6 +470,13 @@ button.prof{font:inherit;cursor:pointer;position:relative}
     <h2>기술을 하나 고르세요</h2>
     <p class="hint" style="margin:0">등급이 높을수록 한 번에 더 많이 강화됩니다. 일반 +1, 레어 +2, 울트라 레어 +3</p>
     <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="p-diff" hidden>
+    <h2>난이도 선택</h2>
+    <p class="lead">귀신들의 강함과 회복량이 달라져요.</p>
+    <div id="diff-list"></div>
+    <div class="btns"><button class="btn alt" id="diff-back" type="button">돌아가기</button></div>
   </section>
 
   <section id="p-over" hidden>
@@ -578,7 +590,7 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
-addEventListener('pagehide',()=>saveDex());
+addEventListener('pagehide',()=>{saveDex();try{bankAcc();}catch(_){}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&S&&S.state==='play')togglePause();});
 
 const joy={on:false,id:null,ox:0,oy:0,x:0,y:0};
@@ -606,7 +618,25 @@ const magR=()=>60+40*P('magnet');
 const maxHp=()=>100+25*P('vital');
 const tails=()=>Math.min(9,1+Math.floor((S.lvl-1)/2));
 
+const ACC_PER=7500;
+const accGet=()=>{try{return Math.max(0,parseInt(localStorage.getItem('gumiho-acc'+PK)||'0',10)||0);}catch(_){return 0;}};
+const accLv=x=>Math.floor(x/ACC_PER)+1;
+function bankAcc(){
+  const s=S;if(!s||s.banked||!s.ae)return 0;
+  s.banked=true;const old=accGet(),now=old+s.ae;
+  try{localStorage.setItem('gumiho-acc'+PK,String(now));}catch(_){}
+  s.aeLv=accLv(now)>accLv(old)?accLv(now):0;
+  return s.ae;
+}
+function paintAcc(){
+  const f=$('acc-fill');if(!f)return;
+  const x=accGet(),r=x%ACC_PER;
+  f.style.width=(r/ACC_PER*100)+'%';
+  $('acc-t').textContent='Lv.'+accLv(x)+'  ·  '+r.toLocaleString()+' / '+ACC_PER.toLocaleString()+' EXP';
+  $('lb-lv').textContent='Lv.'+accLv(x);
+}
 function newGame(){
+  try{if(typeof S!=='undefined'&&S&&S.ae)bankAcc();}catch(_){}
   cv.style.filter='';
   S={state:'play',t:0,kills:0,lvl:1,xp:0,need:need(1),pending:0,tailN:1,
     p:{x:0,y:0,hp:100,max:100,r:11,face:1,dir:0,inv:0,moving:false,walk:0},
@@ -617,7 +647,7 @@ function newGame(){
 
 /* ---------- 적 ---------- */
 const DIFFS=[
-  {n:'쉬움',c:'#7ad67a',hp:1,dmg:1,spd:1,sp:1,gr:1,dr:1,rg:1,d:'기본 난이도'},
+  {n:'쉬움',c:'#7ad67a',hp:1,dmg:1,spd:1,sp:1,gr:1,dr:1,rg:1,d:'처음 시작하기 좋은 기본 난이도'},
   {n:'보통',c:'#ffc94a',hp:1.35,dmg:1.25,spd:1.05,sp:1.2,gr:1.3,dr:.75,rg:.8,d:'몬스터가 더 단단하고 빨리 강해져요'},
   {n:'어려움',c:'#ff5a5a',hp:1.9,dmg:1.6,spd:1.12,sp:1.5,gr:1.7,dr:.5,rg:.6,d:'귀신이 훨씬 많고 단단하며 회복이 줄어요'}
 ];
@@ -647,7 +677,7 @@ function hit(e,dmg,kx,ky){
   if(e.hp<=0&&!e.dead){e.dead=true;kill(e);}
 }
 function kill(e){
-  const s=S,T=ET[e.type];s.kills++;{const dk=e.h?'h'+e.type:e.type;DEX.kills[dk]=(DEX.kills[dk]||0)+1;}
+  const s=S,T=ET[e.type];s.kills++;s.ae=(s.ae||0)+(e.type==='boss'?10:e.type==='jutan'?15:1);{const dk=e.h?'h'+e.type:e.type;DEX.kills[dk]=(DEX.kills[dk]||0)+1;}
   if(e.type==='jutan'){
     for(let i=0;i<16;i++)s.gems.push({x:e.x+rnd(-50,50),y:e.y+rnd(-50,50),v:T.xp,m:0});
     s.drops.push({x:e.x,y:e.y});s.shake=.6;s.jutPhase=3;s.rage2At=s.t+30;s.jf=[];s.hand=null;s.thr=null;
@@ -1529,7 +1559,7 @@ function doCutEv(ev){
     cv.style.filter='';
     s.stage=3;s.en=[];s.ep=[];s.pr=[];s.jf=[];s.hand=null;s.thr=null;
     for(const g of s.gems)g.m=2;
-    s.me0=s.t;s.meKills0=s.kills;DEX.me=true;saveDex();
+    s.me0=s.t;s.meKills0=s.kills;DEX.me=true;saveDex();s.ae=(s.ae||0)+75;
     s.p.hp=Math.min(s.p.max,s.p.hp+s.p.max*.5);
     showStage(3);
   }
@@ -1539,7 +1569,7 @@ function doCutEv(ev){
     c.goT=c.t;s.stage=2;s.en=[];s.ep=[];s.pr=[];
     for(const g of s.gems)g.m=2;
     s.cuts.push(helpCut());
-    DEX.hell=true;saveDex();s.hellStart=s.t;s.hellKills0=s.kills;s.pet={x:s.p.x,y:s.p.y-20,face:1,ph:0};
+    DEX.hell=true;saveDex();s.ae=(s.ae||0)+50;s.hellStart=s.t;s.hellKills0=s.kills;s.pet={x:s.p.x,y:s.p.y-20,face:1,ph:0};
     s.p.hp=Math.min(s.p.max,s.p.hp+s.p.max*.4);
     showStage(2);
   }
@@ -2618,7 +2648,7 @@ function updateHud(){
 }
 function fillStats(id){
   saveDex();saveBest();
-  $(id).innerHTML='<div><dt>생존 시간</dt><dd>'+fmt(S.t)+'</dd></div><div><dt>처치</dt><dd>'+S.kills+'</dd></div><div><dt>레벨</dt><dd>'+S.lvl+'</dd></div><div><dt>꼬리</dt><dd>'+tails()+'개</dd></div>';
+  $(id).innerHTML='<div><dt>생존 시간</dt><dd>'+fmt(S.t)+'</dd></div><div><dt>처치</dt><dd>'+S.kills+'</dd></div><div><dt>레벨</dt><dd>'+S.lvl+'</dd></div><div><dt>꼬리</dt><dd>'+tails()+'개</dd></div>'+(id==='over-stats'?(()=>{const g=bankAcc()||S.ae||0;return '<div><dt>계정 경험치</dt><dd>+'+g.toLocaleString()+(S.aeLv?' · Lv.'+S.aeLv+' 달성!':'')+'</dd></div>';})():'');
 }
 function togglePause(){
   if(S.state==='play'){S.state='pause';saveDex();show('p-pause');}
@@ -2740,7 +2770,7 @@ $('b-restart2').onclick=start;$('b-restart3').onclick=start;
 $('b-resume').onclick=togglePause;
 $('menubtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(S.state==='play')togglePause();});
 $('menubtn').addEventListener('click',e=>e.stopPropagation());
-function toMenu(){saveDex();saveBest();newGame();S.state='start';show('p-start');try{paintDot();}catch(_){}}
+function toMenu(){saveDex();saveBest();bankAcc();newGame();S.state='start';show('p-start');try{paintDot();}catch(_){}}
 $('b-menu1').onclick=toMenu;$('b-menu2').onclick=toMenu;$('b-menu3').onclick=toMenu;
 $('b-dex').onclick=()=>{renderDex();show('p-dex');};
 $('b-hell').onclick=()=>{renderHell();show('p-hell');};
@@ -2864,7 +2894,7 @@ function lbRefresh(){
   const tm=$('lb-time');if(!tm)return;
   tm.textContent='⏱ '+(BEST.time?Math.floor(BEST.time/60)+':'+String(BEST.time%60).padStart(2,'0'):'—');
   $('lb-kill').textContent='☠ '+(BEST.kills||'—');
-  $('lb-lv').textContent='Lv.'+(BEST.lvl||1);
+  paintAcc();
   const lk=!DEX.hell;
   for(const id of ['lb-hell','nv-hell'])$(id).classList.toggle('lock',lk);
   $('lb-hell').firstChild.textContent=lk?'🔒':'🔥';
@@ -2882,17 +2912,22 @@ function lbSay(txt){
   }
   b.classList.add('sw');setTimeout(()=>{p.textContent=txt;b.classList.remove('sw');},220);
 }
-const lbGo=()=>{sfxSel();$('b-start').click();};
-function paintDiff(){
-  const g=$('lbdiff');if(!g)return;g.innerHTML='';
-  DIFFS.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.textContent=d.n;b.style.setProperty('--dc',d.c);if(i===DI)b.classList.add('on');
-    b.onclick=()=>{DI=i;try{localStorage.setItem('gumiho-diff',String(i));}catch(_){}sfxSel();paintDiff();};g.appendChild(b);});
-  $('lbdiff-d').textContent=DIFFS[DI].d;
-}
-paintDiff();
+const lbGo=()=>{openDiff();};
 $('tut-x').onclick=()=>tutEnd();
-$('lb-go').onclick=()=>$('b-start').click();
-$('nv-go').onclick=()=>$('b-start').click();
+function openDiff(){
+  sfxSel();
+  const g=$('diff-list');g.innerHTML='';
+  DIFFS.forEach((d,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='dfc'+(i===DI?' on':'');b.style.setProperty('--dc',d.c);
+    b.innerHTML='<b>'+d.n+'</b><small>'+d.d+'</small><em>'+'체력 ×'+d.hp+' · 공격 ×'+d.dmg+'<br>출현 ×'+d.sp+' · 회복 ×'+d.rg+'</em>';
+    b.onclick=()=>{DI=i;try{localStorage.setItem('gumiho-diff',String(i));}catch(_){}$('b-start').click();};
+    g.appendChild(b);
+  });
+  show('p-diff');
+}
+$('diff-back').onclick=()=>show('p-start');
+$('lb-go').onclick=openDiff;
+$('nv-go').onclick=openDiff;
 $('lb-dex').onclick=$('nv-dex').onclick=()=>{sfxSel();$('b-dex').click();};
 const hellTap=()=>{if(DEX.hell){sfxSel();$('b-hell').click();}else{lbSay('연옥은 지옥의 여제 두억시니를 쓰러뜨려야 열려.');const b=$('lbsay');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}};
 $('lb-hell').onclick=$('nv-hell').onclick=hellTap;
@@ -3034,7 +3069,7 @@ async function cloudPush(){
   if(!isG()||!FBX||!FBX.auth.currentUser)return;
   try{
     await FBX.db.collection('users').doc(FBX.auth.currentUser.uid).set({
-      dex:lsGet('gumiho-dex')||'',best:lsGet('gumiho-best')||'',av:lsGet('gumiho-av')||'',nick:lsGet('gumiho-nick')||'',title:lsGet('gumiho-title')||'',
+      dex:lsGet('gumiho-dex')||'',best:lsGet('gumiho-best')||'',av:lsGet('gumiho-av')||'',nick:lsGet('gumiho-nick')||'',title:lsGet('gumiho-title')||'',acc:lsGet('gumiho-acc')||'0',
       t:Date.now()
     });
   }catch(e){console.warn('cloud save failed',e);}
@@ -3061,6 +3096,7 @@ async function cloudSync(u){
     const dex=mergeDexObj(pj(lsGet('gumiho-dex')),pj(c.dex));
     const lb=pj(lsGet('gumiho-best'))||{},cb=pj(c.best)||{};
     const best={time:Math.max(lb.time||0,cb.time||0),kills:Math.max(lb.kills||0,cb.kills||0),lvl:Math.max(lb.lvl||0,cb.lvl||0)};
+    {const la=parseInt(lsGet('gumiho-acc')||'0',10)||0,ca=parseInt(c.acc||'0',10)||0;localStorage.setItem('gumiho-acc'+PK,String(Math.max(la,ca)));}
     localStorage.setItem('gumiho-dex'+PK,JSON.stringify(dex));
     localStorage.setItem('gumiho-best'+PK,JSON.stringify(best));
     for(const [f,k] of [['av','gumiho-av'],['nick','gumiho-nick'],['title','gumiho-title']]){if(c[f])localStorage.setItem(k+PK,c[f]);}
