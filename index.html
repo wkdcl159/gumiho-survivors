@@ -2520,7 +2520,17 @@ function renderBest(){
   const mm=Math.floor(BEST.time/60),ss=String(BEST.time%60).padStart(2,'0');
   e.innerHTML='최고 기록 · 생존 <b>'+mm+':'+ss+'</b> · 처치 <b>'+BEST.kills+'</b> · 레벨 <b>'+BEST.lvl+'</b> · 두억시니 <b>'+(DEX.stage||0)+'단계</b>';
 }
-function show(id){dexOpen=id==='p-dex';ov.classList.toggle('lobbybg',id==='p-start'||id==='p-login'||id==='p-acct'||id==='p-rank');if(id==='p-start')renderBest();ov.classList.add('on');for(const el of ov.children)el.hidden=el.id!==id;}
+let wipeEl=null;
+function wipeFx(sec,dur){
+  try{
+    if(matchMedia('(prefers-reduced-motion:reduce)').matches||!sec.animate)return;
+    if(!wipeEl){wipeEl=document.createElement('div');wipeEl.style.cssText='position:fixed;inset:0;z-index:70;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,#3a2466 0%,#150f2e 70%)';document.body.appendChild(wipeEl);}
+    wipeEl.getAnimations().forEach(x=>x.cancel());
+    wipeEl.animate([{opacity:.92},{opacity:.92,offset:.18},{opacity:0}],{duration:dur,easing:'ease-out'});
+    sec.animate([{opacity:0},{opacity:0,offset:.18},{opacity:1}],{duration:dur,easing:'ease-out'});
+  }catch(_){}
+}
+function show(id){const prev=[...ov.children].find(el=>!el.hidden&&el.tagName==='SECTION');const same=prev&&prev.id===id&&ov.classList.contains('on');dexOpen=id==='p-dex';ov.classList.toggle('lobbybg',id==='p-start'||id==='p-login'||id==='p-acct'||id==='p-rank');if(id==='p-start')renderBest();ov.classList.add('on');for(const el of ov.children)el.hidden=el.id!==id;if(!same){const cur=$(id);if(cur)wipeFx(cur,420);}}
 function hideOv(){dexOpen=false;ov.classList.remove('on');}
 const THUMB={wisp:[2.3,-3],gob:[1.9,-3],egg:[2,0],hwisp:[2.3,-3],hgob:[1.9,-3],hegg:[2,0],jutan:[.62,-6],mwisp:[2.3,-3],mgob:[1.9,-3],megg:[1.9,0],boss:[.95,-7]};
 function renderDex(){
