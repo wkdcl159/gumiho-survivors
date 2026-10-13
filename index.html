@@ -2746,7 +2746,16 @@ $('lg-go').onclick=async()=>{
 ['lg-id','lg-pw','lg-pw2'].forEach(i=>$(i).addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')$('lg-go').click();}));
 $('lg-guest').onclick=()=>{setProfile(null);enterLobby();};
 $('lb-prof').onclick=()=>{ptTab(1);paintAvGrid();paintTtList();$('ac-del').hidden=!curId||isG();$('av-hint').textContent='';$('ac-nick').value=getNick();$('ac-nmsg').textContent='';$('ac-name').textContent=isG()?'구글 계정 · '+(localStorage.getItem('gumiho-glabel')||''):curId?'로그인 아이디 · '+curId:'게스트로 플레이 중 (기록은 이 브라우저의 게스트 칸에 저장돼요)';$('ac-out').textContent=curId?'로그아웃':'로그인 / 회원가입';show('p-acct');};
-$('ac-out').onclick=async()=>{saveDex();saveBest();if(isG()){try{await cloudPush();if(FBX)await FBX.auth.signOut();}catch(_){}}setProfile(null);lgTab(1);show('p-login');};
+$('ac-out').onclick=async()=>{saveDex();saveBest();
+  if(isG()){
+    const lim=(pr,ms)=>Promise.race([Promise.resolve(pr).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
+    const was=curId;
+    setProfile(null);   // 먼저 화면부터 로그아웃 상태로
+    lgTab(1);show('p-login');
+    try{if(FBX)await lim(FBX.auth.signOut(),2500);}catch(_){}
+    return;
+  }
+  setProfile(null);lgTab(1);show('p-login');};
 $('ac-back').onclick=()=>show('p-start');
 $('ac-nick').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')$('ac-nsave').click();});
 $('ac-nsave').onclick=()=>{
