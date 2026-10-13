@@ -75,6 +75,11 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 #ov.on{display:flex}
 #ov>section{margin:auto;text-align:center;max-width:720px;width:100%}
 #ov>section[hidden]{display:none}
+#lbdiff{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
+#lbdiff button{font:inherit;font-weight:700;font-size:14px;padding:6px 16px;border-radius:999px;border:2px solid rgba(255,255,255,.28);background:rgba(20,14,44,.7);color:#d9ccff;cursor:pointer;transition:transform .12s,box-shadow .12s}
+#lbdiff button:hover{transform:translateY(-2px)}
+#lbdiff button.on{color:#1a1030;background:var(--dc);border-color:#fff;box-shadow:0 0 14px var(--dc)}
+#lbdiff-d{margin:-2px 0 6px;font-size:12px;color:#cdbff0;text-align:center;min-height:16px}
 h1{font-family:var(--display);font-weight:400;font-size:clamp(64px,16vw,120px);line-height:1;margin:0;color:var(--fire);text-shadow:0 5px 0 rgba(0,0,0,.45)}
 h2{font-family:var(--display);font-weight:400;font-size:clamp(34px,8vw,52px);margin:0 0 10px;color:var(--paper)}
 .sub{font-family:var(--display);font-size:clamp(20px,4.5vw,28px);color:var(--paper);margin:6px 0 0}
@@ -389,6 +394,7 @@ button.prof{font:inherit;cursor:pointer;position:relative}
         <div id="lbsay"><b>달기</b><p id="lbsay-t"></p></div>
       </div>
       <p id="best"></p>
+      <div id="lbdiff"></div><p id="lbdiff-d"></p>
       <button id="lb-go" type="button"><span class="ico">⚔</span>출정</button>
       <p class="hint">이동: WASD / 방향키, 모바일은 화면 드래그 · 공격은 자동<br>스킬: Space 또는 Q, 모바일은 오른쪽 아래 버튼 · P 또는 Esc로 일시정지</p>
       <nav id="lbnav">
@@ -610,10 +616,17 @@ function newGame(){
 }
 
 /* ---------- 적 ---------- */
+const DIFFS=[
+  {n:'쉬움',c:'#7ad67a',hp:1,dmg:1,spd:1,sp:1,gr:1,dr:1,rg:1,d:'기본 난이도'},
+  {n:'보통',c:'#ffc94a',hp:1.35,dmg:1.25,spd:1.05,sp:1.2,gr:1.3,dr:.75,rg:.8,d:'몬스터가 더 단단하고 빨리 강해져요'},
+  {n:'어려움',c:'#ff5a5a',hp:1.9,dmg:1.6,spd:1.12,sp:1.5,gr:1.7,dr:.5,rg:.6,d:'귀신이 훨씬 많고 단단하며 회복이 줄어요'}
+];
+let DI=0;try{DI=Math.max(0,Math.min(2,+localStorage.getItem('gumiho-diff')||0));}catch(_){}
+const DM=()=>DIFFS[DI];
 function spawn(type,px,py){
-  const s=S,T=ET[type],a=Math.random()*TAU,d=Math.hypot(W,H)/2+rnd(30,90);
-  const H3=s.stage===3,d3=H3?Math.max(0,s.t-(s.me0||0)):0,H2=s.stage===2,RG=H2&&!!s.rage,hp=(type==='boss'?T.hp*(1+s.t/150):T.hp*(1+s.t/200))*(H2?1.8*(1+Math.max(0,s.t-s.hellStart)/120):1)*(RG?1.5:1)*(H3?1.3*(1+d3/100):1);
-  s.en.push({type,rg:RG,h:H2&&type!=='boss',x:px!==undefined?px:s.p.x+Math.cos(a)*d,y:py!==undefined?py:s.p.y+Math.sin(a)*d,r:T.r,hp,max:hp,spd:T.spd*rnd(.9,1.1)*(H2?1.1*Math.min(1.5,1+Math.max(0,s.t-s.hellStart)/600):1)*(RG?1.2:1)*(H3?Math.min(1.4,1+d3/500):1),dmg:T.dmg*(1+s.t/1200)*(H2?1.4*(1+Math.max(0,s.t-s.hellStart)/240):1)*(RG?1.5:1)*(H3?1.3*(1+d3/200):1),flash:0,fireCd:0,kx:0,ky:0,frz:0,ph:Math.random()*TAU,dead:false});
+  const s=S,T=ET[type],a=Math.random()*TAU,d=Math.hypot(W,H)/2+rnd(30,90);const dm=DM(),gt=s.t*dm.gr;
+  const H3=s.stage===3,d3=H3?Math.max(0,s.t-(s.me0||0)):0,H2=s.stage===2,RG=H2&&!!s.rage,hp=dm.hp*(type==='boss'?T.hp*(1+gt/150):T.hp*(1+gt/200))*(H2?1.8*(1+Math.max(0,s.t-s.hellStart)/120):1)*(RG?1.5:1)*(H3?1.3*(1+d3/100):1);
+  s.en.push({type,rg:RG,h:H2&&type!=='boss',x:px!==undefined?px:s.p.x+Math.cos(a)*d,y:py!==undefined?py:s.p.y+Math.sin(a)*d,r:T.r,hp,max:hp,spd:dm.spd*T.spd*rnd(.9,1.1)*(H2?1.1*Math.min(1.5,1+Math.max(0,s.t-s.hellStart)/600):1)*(RG?1.2:1)*(H3?Math.min(1.4,1+d3/500):1),dmg:dm.dmg*T.dmg*(1+gt/1200)*(H2?1.4*(1+Math.max(0,s.t-s.hellStart)/240):1)*(RG?1.5:1)*(H3?1.3*(1+d3/200):1),flash:0,fireCd:0,kx:0,ky:0,frz:0,ph:Math.random()*TAU,dead:false});
 }
 function spawnRandom(){
   const t=S.t,r=Math.random();let type='wisp';
@@ -648,7 +661,7 @@ function kill(e){
     toast('두억시니 '+e.stage+'단계 격파!');
   }else{
     s.gems.push({x:e.x,y:e.y,v:s.stage>=2?Math.ceil(T.xp*1.6):T.xp,m:0});
-    if(Math.random()<.012)s.drops.push({x:e.x,y:e.y});
+    if(Math.random()<.012*DM().dr)s.drops.push({x:e.x,y:e.y});
   }
   if(s.fx.length<300){
     const col={wisp:'#9be26b',gob:'#c8454f',egg:'#e9e6f5',boss:'#6a3d8f',jutan:'#ff6a3a',mwisp:'#a070ff',mgob:'#7a50c0',megg:'#d8c8ff'}[e.type];
@@ -938,8 +951,8 @@ function showStage(n){
   sg.hidden=false;void sg.offsetWidth;sg.classList.add('on');setTimeout(()=>{sg.hidden=true;},4200);
 }
 function spawnJutan(x,y){
-  const s=S,T=ET.jutan,hp=T.hp*(1+s.t/150)*4.5;
-  const e={type:'jutan',x,y,r:T.r,hp,max:hp,spd:T.spd,dmg:T.dmg*(1+s.t/1200)*1.5,flash:0,fireCd:0,kx:0,ky:0,frz:0,ph:0,dead:false,rise:0,fCd:2.5,zCd:4,hCd:7,face:1};
+  const s=S,T=ET.jutan,dm=DM(),hp=dm.hp*T.hp*(1+s.t*dm.gr/150)*4.5;
+  const e={type:'jutan',x,y,r:T.r,hp,max:hp,spd:T.spd,dmg:dm.dmg*T.dmg*(1+s.t*dm.gr/1200)*1.5,flash:0,fireCd:0,kx:0,ky:0,frz:0,ph:0,dead:false,rise:0,fCd:2.5,zCd:4,hCd:7,face:1};
   s.en.push(e);
   if(!DEX.seen.jutan){DEX.seen.jutan=1;saveDex();}
   return e;
@@ -1177,8 +1190,8 @@ function updInf(dt){
 }
 function spawnBoss(stage,x,y){
   const s=S,T=ET.boss,B=BOSS[stage-1];
-  const hp=T.hp*(1+s.t/200)*B.hp;
-  const e={type:'boss',stage,ai:B.ai,look:B.look,x,y,r:T.r*B.size,hp,max:hp,spd:T.spd*B.spd,dmg:T.dmg*(1+s.t/1200)*B.dmg,
+  const dm=DM(),hp=dm.hp*T.hp*(1+s.t*dm.gr/200)*B.hp;
+  const e={type:'boss',stage,ai:B.ai,look:B.look,x,y,r:T.r*B.size,hp,max:hp,spd:T.spd*B.spd,dmg:dm.dmg*T.dmg*(1+s.t*dm.gr/1200)*B.dmg,
     flash:0,fireCd:0,kx:0,ky:0,frz:0,ph:0,dead:false,rise:1,dashCd:4,warn:0,dashT:0,dvx:0,dvy:0,shotCd:3,sumCd:5};
   s.en.push(e);
   if((DEX.stage||0)<stage){DEX.stage=stage;saveDex();}
@@ -1626,10 +1639,10 @@ function update(dt){
   p.inv-=dt;s.shake=Math.max(0,s.shake-dt);
   s.magCd-=dt;if(s.magCd<=0){s.magCd+=60;magnet();}
   s.skCd=Math.max(0,s.skCd-dt);
-  p.hp=Math.min(p.max,p.hp+(.4+.4*P('vital'))*dt);
+  p.hp=Math.min(p.max,p.hp+(.4+.4*P('vital'))*DM().rg*dt);
 
   // 스폰
-  s.acc=Math.min(s.acc+(1.3+s.t/16)*(s.stage===3?2:s.stage===2?(s.rage?1.7:1.3):1)*(s.jutPhase===2?.6:1)*dt,s.stage===3?12:s.rage?11:8);
+  s.acc=Math.min(s.acc+DM().sp*(1.3+s.t/16)*(s.stage===3?2:s.stage===2?(s.rage?1.7:1.3):1)*(s.jutPhase===2?.6:1)*dt,s.stage===3?12:s.rage?11:8);
   while(s.acc>=1){s.acc-=1;if(s.en.length<380)spawnRandom();}
   if(s.t>=s.boss&&!s.en.some(e=>e.type==='boss'&&!e.dead)&&!s.cuts.some(c=>c.bossStage)){s.boss=1e9;s.bossN++;s.cuts.push(bossCut(Math.min(3,s.bossN),s.bossN===1));}
 
@@ -2870,6 +2883,13 @@ function lbSay(txt){
   b.classList.add('sw');setTimeout(()=>{p.textContent=txt;b.classList.remove('sw');},220);
 }
 const lbGo=()=>{sfxSel();$('b-start').click();};
+function paintDiff(){
+  const g=$('lbdiff');if(!g)return;g.innerHTML='';
+  DIFFS.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.textContent=d.n;b.style.setProperty('--dc',d.c);if(i===DI)b.classList.add('on');
+    b.onclick=()=>{DI=i;try{localStorage.setItem('gumiho-diff',String(i));}catch(_){}sfxSel();paintDiff();};g.appendChild(b);});
+  $('lbdiff-d').textContent=DIFFS[DI].d;
+}
+paintDiff();
 $('tut-x').onclick=()=>tutEnd();
 $('lb-go').onclick=()=>$('b-start').click();
 $('nv-go').onclick=()=>$('b-start').click();
