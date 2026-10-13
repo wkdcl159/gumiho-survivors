@@ -193,7 +193,10 @@ dl.stats dd{margin:4px 0 0;font-family:var(--display);font-size:26px;color:var(-
 .lgform input:focus{border-color:#ffd75e}
 .lgform input[hidden]{display:none}
 .lgerr{min-height:20px;margin:0;font-size:13px;color:#ff8a7a;text-align:left}
-button.prof{font:inherit;cursor:pointer}
+button.prof{font:inherit;cursor:pointer;position:relative}
+.rdot{position:absolute;top:-4px;left:-4px;width:13px;height:13px;border-radius:50%;background:#ff2a3a;border:2px solid #fff;box-shadow:0 0 8px #ff2a3a;animation:rdb 1s infinite;pointer-events:none}
+.rdot[hidden]{display:none}
+@keyframes rdb{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.7)}}
 
 #lg-logo{display:block;width:min(86%,300px);height:auto;margin:0 auto 6px}
 .prof .av{background-size:cover;background-position:50% 18%;overflow:hidden}
@@ -357,7 +360,7 @@ button.prof{font:inherit;cursor:pointer}
 <div id="ov" class="on lobbybg">
   <section id="p-start">
     <div id="lbtop">
-      <button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button>
+      <button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><i class="rdot" id="lb-dot" hidden></i><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button>
       <div class="pill" id="lb-time">⏱ —</div>
       <div class="pill" id="lb-kill">☠ —</div>
       <button class="rnd b-snd" id="lb-set" type="button" aria-label="사운드 설정">⚙</button>
@@ -543,7 +546,7 @@ const MON={
 };
 let PK='';try{const c=localStorage.getItem('gumiho-cur');if(c)PK='@'+c;}catch(_){}
 let DEX={seen:{},kills:{}};
-function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp,pu:!!d.pu};}catch(_){}}
+function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp,pu:!!d.pu,ju:!!d.ju};}catch(_){}}
 loadDex();
 function saveDex(){try{localStorage.setItem('gumiho-dex'+PK,JSON.stringify(DEX));}catch(_){}}
 
@@ -996,6 +999,7 @@ const JP={dur:40,cd:45};
 function castJut(){
   const s=S;
   if(!s||s.state!=='play'||!s.jutUnlock||s.jp.on||s.jp.cd>0||posOn())return;
+  if(!DEX.ju){DEX.ju=true;saveDex();}
   s.jp.on=true;s.jp.t=JP.dur;s.orbJ=0;s.jt1=.3;s.jt3=0;s.jt4=.2;s.jt5=1;s.jt6=.2;
   const p=s.p;
   for(let i=0;i<70;i++){const a=Math.random()*TAU,v=rnd(80,380);s.fx.push({k:'pt',x:p.x,y:p.y-6,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.8,max:.8,c:i%3?'#ff7a2a':(i%2?'#ffd75e':'#c2243a'),r:rnd(2,6)});}
@@ -2700,7 +2704,7 @@ $('b-restart2').onclick=start;$('b-restart3').onclick=start;
 $('b-resume').onclick=togglePause;
 $('menubtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(S.state==='play')togglePause();});
 $('menubtn').addEventListener('click',e=>e.stopPropagation());
-function toMenu(){saveDex();saveBest();newGame();S.state='start';show('p-start');}
+function toMenu(){saveDex();saveBest();newGame();S.state='start';show('p-start');try{paintDot();}catch(_){}}
 $('b-menu1').onclick=toMenu;$('b-menu2').onclick=toMenu;$('b-menu3').onclick=toMenu;
 $('b-dex').onclick=()=>{renderDex();show('p-dex');};
 $('b-hell').onclick=()=>{renderHell();show('p-hell');};
@@ -2820,6 +2824,7 @@ function lobbyFx(dt,show){
 }
 // ---- 로비 UI ----
 function lbRefresh(){
+  try{paintDot();}catch(_){}
   const tm=$('lb-time');if(!tm)return;
   tm.textContent='⏱ '+(BEST.time?Math.floor(BEST.time/60)+':'+String(BEST.time%60).padStart(2,'0'):'—');
   $('lb-kill').textContent='☠ '+(BEST.kills||'—');
@@ -2920,11 +2925,20 @@ const TITLES=[
   {k:'oni',n:'두억시니를 마주한 자',d:'두억시니 최종 단계를 만남',ok:()=>(DEX.stage||0)>=3},
   {k:'merge',n:'하나가 된 둘',d:'두억시니 빙의를 사용',ok:()=>!!DEX.pu},
   {k:'hell',n:'연옥의 방문자',d:'연옥에 도달',ok:()=>!!DEX.hell},
-  {k:'jut',n:'술 취한 불꽃',d:'주탄동자를 쓰러뜨리고 빙의를 얻음',ok:()=>!!DEX.jp},
+  {k:'jut',n:'술 취한 불꽃',d:'주탄동자 빙의를 사용',ok:()=>!!DEX.ju},
   {k:'void',n:'멸연옥의 생존자',d:'멸연옥에 도달',ok:()=>!!DEX.me}
 ];
 function ttKey(){let k='t0';try{k=localStorage.getItem('gumiho-title'+PK)||'t0';}catch(_){}const a=TITLES.find(x=>x.k===k);return a&&a.ok()?k:'t0';}
-function paintTitle(){const a=TITLES.find(x=>x.k===ttKey());$('lb-title').textContent=a.k==='t0'?'':a.n;}
+function ttSeenGet(){try{const v=localStorage.getItem('gumiho-ttseen'+PK);return v?JSON.parse(v):null;}catch(_){return null;}}
+function ttSeenSave(a){try{localStorage.setItem('gumiho-ttseen'+PK,JSON.stringify(a));}catch(_){}}
+function paintDot(){
+  const d=$('lb-dot');if(!d)return;
+  const have=TITLES.filter(a=>a.ok()).map(a=>a.k);let seen=ttSeenGet();
+  if(!seen){ttSeenSave(have);seen=have;}
+  d.hidden=!have.some(k=>!seen.includes(k));
+}
+function ttMarkSeen(){ttSeenSave(TITLES.filter(a=>a.ok()).map(a=>a.k));paintDot();}
+function paintTitle(){const a=TITLES.find(x=>x.k===ttKey());$('lb-title').textContent=a.k==='t0'?'':a.n;paintDot();}
 function paintTtList(){
   const g=$('tt-list'),cur=ttKey();g.innerHTML='';
   for(const a of TITLES){
@@ -2938,7 +2952,7 @@ function paintTtList(){
     g.appendChild(b);
   }
 }
-function ptTab(m){$('pt1').classList.toggle('on',m===1);$('pt2').classList.toggle('on',m===2);$('pane-av').hidden=m!==1;$('pane-tt').hidden=m!==2;}
+function ptTab(m){if(m===2)ttMarkSeen();$('pt1').classList.toggle('on',m===1);$('pt2').classList.toggle('on',m===2);$('pane-av').hidden=m!==1;$('pane-tt').hidden=m!==2;}
 $('pt1').onclick=()=>ptTab(1);$('pt2').onclick=()=>ptTab(2);
 let delArm=0;
 $('ac-del').onclick=()=>{
@@ -2989,7 +3003,7 @@ function mergeDexObj(a,b){
   a=a||{};b=b||{};const o={seen:Object.assign({},a.seen,b.seen),kills:{}};
   for(const k of new Set([...Object.keys(a.kills||{}),...Object.keys(b.kills||{})]))o.kills[k]=Math.max((a.kills||{})[k]||0,(b.kills||{})[k]||0);
   o.stage=Math.max(a.stage||0,b.stage||0);
-  for(const f of ['hell','me','mg','jp','pu'])o[f]=!!(a[f]||b[f]);
+  for(const f of ['hell','me','mg','jp','pu','ju'])o[f]=!!(a[f]||b[f]);
   for(const f of ['hb','mb']){const x=a[f],y=b[f];o[f]=!x?(y||null):!y?x:((y.t||0)>(x.t||0)?y:x);}
   return o;
 }
