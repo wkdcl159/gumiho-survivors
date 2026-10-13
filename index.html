@@ -1093,7 +1093,7 @@ function updJutan(dt){
   for(const z of s.jf){
     z.t-=dt;
     if(z.t<=0&&!z.done){
-      z.done=true;s.fx.push({k:'jboom',x:z.x,y:z.y,R:z.R,life:.45,max:.45});
+      z.done=true;s.fx.push({k:'jboom',el:z.el,x:z.x,y:z.y,R:z.R,life:.45,max:.45});
       if(Math.hypot(p.x-z.x,p.y-z.y)<z.R+p.r&&p.inv<=0)hurt(z.dmg);
       s.shake=Math.max(s.shake,.2);
     }
@@ -1328,7 +1328,7 @@ function bossAI(e,dt,vx,vy,sp){
     e.slCd-=dt;
     if(e.slCd<=0){
       e.slCd=(st>=5?4.2:st>=3?5:6)*k;
-      s.jf.push({x:e.x,y:e.y,R:st>=5?190:st>=3?160:135,t:.9,max:.9,dmg:e.dmg*.9});
+      s.jf.push({el:1,x:e.x,y:e.y,R:st>=5?190:st>=3?160:135,t:.9,max:.9,dmg:e.dmg*.9});
       s.shake=Math.max(s.shake,.15);
     }
   }
@@ -1353,7 +1353,7 @@ function bossAI(e,dt,vx,vy,sp){
     e.zoCd-=dt;
     if(e.zoCd<=0){
       e.zoCd=5.5*k;
-      for(let i=0;i<5;i++){const a=Math.random()*TAU,dd=i===0?0:rnd(50,200);s.jf.push({x:p.x+Math.cos(a)*dd,y:p.y+Math.sin(a)*dd,R:72,t:1.0,max:1.0,dmg:e.dmg*.8});}
+      for(let i=0;i<5;i++){const a=Math.random()*TAU,dd=i===0?0:rnd(50,200);s.jf.push({el:1,x:p.x+Math.cos(a)*dd,y:p.y+Math.sin(a)*dd,R:72,t:1.0,max:1.0,dmg:e.dmg*.8});}
     }
     e.sumCd-=dt;
     if(e.sumCd<=0){
@@ -1982,6 +1982,7 @@ function drawJutanFx(camX,camY){
   const s=S;
   for(const z of s.jf){
     const x=z.x-camX,y=z.y-camY,k=1-z.t/z.max;
+    if(z.el){elZone(x,y,z.R,k);continue;}
     ctx.fillStyle='rgba(255,70,20,'+(.1+.16*k)+')';ctx.beginPath();ctx.arc(x,y,z.R,0,TAU);ctx.fill();
     ctx.fillStyle='rgba(255,170,60,.4)';ctx.beginPath();ctx.arc(x,y,z.R*k,0,TAU);ctx.fill();
     ctx.strokeStyle='rgba(255,150,60,'+(.55+.4*Math.sin(s.t*24))+')';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,z.R,0,TAU);ctx.stroke();
@@ -1997,6 +1998,35 @@ function drawJutanFx(camX,camY){
     ctx.drawImage(HI.img,-w*.40,-hh*.70,w,hh);
     ctx.restore();ctx.globalAlpha=1;
   }
+}
+function elBolt(x0,y0,x1,y1,n,j,w,c){
+  ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(x0,y0);
+  for(let i=1;i<n;i++){const u=i/n;ctx.lineTo(x0+(x1-x0)*u+(Math.random()-.5)*j,y0+(y1-y0)*u+(Math.random()-.5)*j);}
+  ctx.lineTo(x1,y1);ctx.stroke();
+}
+function elOrb(x,y,r){
+  const g=ctx.createRadialGradient(x,y,1,x,y,r*2.4);g.addColorStop(0,'rgba(245,230,255,.95)');g.addColorStop(.35,'rgba(170,90,255,.7)');g.addColorStop(1,'rgba(90,30,200,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*2.4,0,TAU);ctx.fill();
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.shadowColor='#a45cff';ctx.shadowBlur=12;
+  for(let i=0;i<3;i++){const a=Math.random()*TAU,l=r*(1.5+Math.random()*1.2);elBolt(x,y,x+Math.cos(a)*l,y+Math.sin(a)*l,4,r*.9,1.6,'rgba(225,190,255,.95)');}
+  ctx.restore();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,r*.38,0,TAU);ctx.fill();
+}
+function elZone(x,y,R,k){
+  ctx.fillStyle='rgba(110,40,210,'+(.1+.18*k)+')';ctx.beginPath();ctx.arc(x,y,R,0,TAU);ctx.fill();
+  ctx.fillStyle='rgba(190,130,255,'+(.2+.25*k)+')';ctx.beginPath();ctx.arc(x,y,R*k,0,TAU);ctx.fill();
+  ctx.strokeStyle='rgba(205,150,255,'+(.55+.4*Math.sin(S.t*24))+')';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,R,0,TAU);ctx.stroke();
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.shadowColor='#a45cff';ctx.shadowBlur=10;
+  const n=4+Math.floor(k*6);
+  for(let i=0;i<n;i++){const a=Math.random()*TAU,a2=a+(Math.random()-.5)*.6,r0=R*Math.random()*.3,r1=R*(.6+Math.random()*.4);elBolt(x+Math.cos(a)*r0,y+Math.sin(a)*r0,x+Math.cos(a2)*r1,y+Math.sin(a2)*r1,5,R*.18,1.8,'rgba(235,205,255,'+(.5+.45*k)+')');}
+  ctx.restore();
+}
+function elBoom(x,y,r,a){
+  const g=ctx.createRadialGradient(x,y,2,x,y,r);g.addColorStop(0,'rgba(250,240,255,'+a+')');g.addColorStop(.5,'rgba(150,70,255,'+(.75*a)+')');g.addColorStop(1,'rgba(60,20,160,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();
+  ctx.save();ctx.globalCompositeOperation='lighter';ctx.shadowColor='#b070ff';ctx.shadowBlur=16;
+  for(let i=0;i<9;i++){const an=i/9*TAU+Math.random()*.4;elBolt(x,y,x+Math.cos(an)*r,y+Math.sin(an)*r,6,r*.22,2.6*a+.6,'rgba(235,210,255,'+a+')');}
+  ctx.restore();
 }
 function drawEnemy(e,x,y){
   const fl=e.flash>0,t=S.t,HE=(S.stage===2&&e.type!=='boss'&&e.type!=='jutan')||!!e.hthumb;
@@ -2068,7 +2098,7 @@ const CUTS={
     ev:[{t:1.4,k:'wave',dmg:8,kb:60}]},
   introStory:{str:0,from:0,to:0,fl:0,tl:0,speaker:'달기',text:'',
     lines:[{who:'dalgi',text:'…여기가 지옥의 입구구나.',t0:.5,dur:1.8},
-           {who:'dalgi',text:'동생이 이 어딘가에 갇혀 있어. 반드시 찾아낼 거야.',t0:2.9,dur:2.8},
+           {who:'dalgi',text:'여동생이 이 어딘가에 갇혀 있어. 반드시 찾아낼 거야.',t0:2.9,dur:2.8},
            {who:'dalgi',text:'지옥, 연옥, 그리고 멸연옥… 끝까지 가 줄게!',t0:6.4,dur:2.6}],
     ev:[{t:9.8,k:'wave',dmg:8,kb:60}],end:10.8},
   t3:{str:1,from:0,to:1,noForm:true,fl:0,tl:1,text:'뭔가 할수있을거 같아!',tt:[.3,1.5],end:3.8,
@@ -2134,7 +2164,7 @@ function drawBoss(e,x,y){
       ctx.beginPath();ctx.moveTo(fx-4,fy);ctx.quadraticCurveTo(fx,fy-9,fx,fy-13);ctx.quadraticCurveTo(fx+2,fy-6,fx+4,fy);ctx.fill();
     }
   }
-  if(e.warn>0){ctx.strokeStyle=rgba('#ff3a2a',.5+.5*Math.sin(t*40));ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,(e.r||34)+8,0,TAU);ctx.stroke();}
+  if(e.warn>0){ctx.strokeStyle=rgba('#b46bff',.5+.5*Math.sin(t*40));ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,(e.r||34)+8,0,TAU);ctx.stroke();}
   if(!e.thumb&&!e.face){
     const by=y-((st===5&&B5.ok)?118*.62+4:48)*sc-14;
     ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(x-36,by,72,6);
@@ -2441,10 +2471,7 @@ function draw(){
       const g=ctx.createRadialGradient(x,y,2,x,y,24);g.addColorStop(0,'rgba(255,240,170,.95)');g.addColorStop(.4,'rgba(255,120,30,.8)');g.addColorStop(1,'rgba(255,40,10,0)');
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,24,0,TAU);ctx.fill();continue;
     }
-    ctx.fillStyle='rgba(255,60,50,.28)';ctx.beginPath();ctx.arc(x,y,16,0,TAU);ctx.fill();
-    ctx.fillStyle='#2a0e1c';ctx.beginPath();ctx.arc(x,y,9,0,TAU);ctx.fill();
-    ctx.strokeStyle='#ff4a3a';ctx.lineWidth=2.5;ctx.stroke();
-    ctx.fillStyle='#ffb0a0';ctx.beginPath();ctx.arc(x-2,y-2,2.5,0,TAU);ctx.fill();
+    elOrb(x,y,q.r);
   }
   drawJutanFx(camX,camY);
   drawJutFx(camX,camY);
@@ -2564,9 +2591,10 @@ function draw(){
     }
     else if(f.k==='jboom'){
       const x=f.x-camX,y=f.y-camY,r=f.R*(1.1-a*.25);
+      if(f.el){elBoom(x,y,r,a);}else{
       const g=ctx.createRadialGradient(x,y,2,x,y,r);g.addColorStop(0,'rgba(255,235,150,'+a+')');g.addColorStop(.5,'rgba(255,110,30,'+(.75*a)+')');g.addColorStop(1,'rgba(200,30,10,0)');
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();
-      ctx.strokeStyle='rgba(255,170,70,'+a+')';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.stroke();
+      ctx.strokeStyle='rgba(255,170,70,'+a+')';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.stroke();}
     }
     else if(f.k==='tsw'||f.k==='fnova'){}
     else{
@@ -2989,7 +3017,7 @@ function lbRefresh(){
   for(const id of ['lb-hell'])$(id).classList.toggle('lock',lk);
   $('lb-hell').firstChild.textContent=lk?'🔒':'🔥';
 }
-const SAYS=['오늘 밤도 귀신들이 몰려오겠구나… 후훗.','꼬리가 근질근질해~ 슬슬 나가볼까?','동생아… 조금만 기다려. 언니가 갈게.','지옥의 여제 두억시니, 그 녀석부터 넘어야지.','경험치 구슬은 놓치지 말고 챙겨야 해!','꼬리가 많을수록 강해지는 거, 알지?','…누가 날 부른 것 같은데?'];
+const SAYS=['오늘 밤도 귀신들이 몰려오겠구나… 후훗.','꼬리가 근질근질해~ 슬슬 나가볼까?','여동생아… 조금만 기다려. 언니가 갈게.','지옥의 여제 두억시니, 그 녀석부터 넘어야지.','경험치 구슬은 놓치지 말고 챙겨야 해!','꼬리가 많을수록 강해지는 거, 알지?','…누가 날 부른 것 같은데?'];
 let sayI=-1;
 function lbSay(txt){
   const b=$('lbsay'),p=$('lbsay-t');
@@ -3017,11 +3045,11 @@ function openDiff(){
   show('p-diff');
 }
 const CHARS=[{k:'dalgi',n:'달기',sub:'아홉 꼬리 여우',src:()=>FACE[0],
-  story:'천 년을 살아온 아홉 꼬리 여우. 어느 날 밤, 사랑하는 동생이 사라졌다. 달기는 동생을 찾기 위해 지옥, 연옥, 그리고 멸연옥을 차례로 건너기로 한다. 지옥의 여제 두억시니, 연옥의 심판자 주탄동자, 멸연옥의 주인 염라가 그 길을 막아선다.',
+  story:'천 년을 살아온 아홉 꼬리 여우. 사라진 여동생을 찾기 위해, 달기는 지옥과 연옥, 멸연옥을 차례로 건너 길을 떠난다.',
   grow:['t1','t3','t6','t9'],poss:['mg','jpos'],
   desc:{t1:'꼬리 하나. 막 길을 나선 달기. 작은 여우불뿐이지만 동생을 향한 마음만은 누구보다 크다.',
         t3:'꼬리 세 개. 여우불을 다루기 시작했다. 지옥의 귀신들 사이로 길을 연다.',
-        t6:'꼬리 여섯 개. 연옥불이 보랏빛으로 타오른다. 연옥의 심판자와 맞설 힘을 얻었다.',
+        t6:'꼬리 여섯 개. 여우불이 보랏빛 연옥불로 타오르기 시작한다.',
         t9:'꼬리 아홉 개. 만년설의 힘까지 깨운 진정한 구미호의 모습.',
         mg:'지옥의 여제 두억시니와 하나가 된 모습. 두억시니의 힘을 빌려 모든 능력이 크게 오른다.',
         jpos:'연옥의 심판자 주탄동자와 하나가 된 모습. 술기운 오른 불길이 적을 태워 버린다.'}}];
@@ -3387,7 +3415,7 @@ $('ac-nsave').onclick=()=>{
 paintNick();paintAv();paintTitle();
 $('lg-logo').src=LOGO_SRC;
 // ---- 인트로 ----
-const IN_LINES=['천 년을 살아온 아홉 꼬리 여우, 달기.','어느 날 밤, 사랑하는 동생이 사라졌다.','지옥, 연옥, 그리고 멸연옥… 달기는 동생을 찾아 꼬리를 편다.'];
+const IN_LINES=['천 년을 살아온 아홉 꼬리 여우, 달기.','어느 날 밤, 사랑하는 여동생이 사라졌다.','지옥, 연옥, 그리고 멸연옥… 달기는 여동생을 찾아 꼬리를 편다.'];
 const tutOn=()=>{try{return localStorage.getItem('gumiho-tut')!=='1';}catch(_){return false;}};
 const tutSave=()=>{try{localStorage.setItem('gumiho-tut','1');}catch(_){}};
 const TUT=[
