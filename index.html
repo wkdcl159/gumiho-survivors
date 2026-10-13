@@ -228,6 +228,9 @@ button.prof{font:inherit;cursor:pointer}
 .rkr .nm small{display:block;font-family:var(--body);font-size:10px;color:#ffd75e}
 .rkr .sc{text-align:right;font-family:var(--display);font-size:14px;line-height:1.2;flex:none}
 .rkr .sc small{display:block;font-family:var(--body);font-size:10px;color:#bdb4dc}
+.chip.yeom{background:linear-gradient(#7a1030,#1a0420);color:#ffd0e0;box-shadow:0 0 10px rgba(220,40,90,.9);border:1px solid #ff4a7a}
+.card.r4{--b1:#3a0a24;--b2:#14041c;--edge:#e0245a;--c1:#ff5a8a;--c2:#a01040;--c3:#fff0f4;--tag:#ffb0c8;--glow:0 0 34px rgba(230,40,100,.95);color:#fff0f4}
+.card.r4 .nm,.card.r4 .ds,.card.r4 .tg{color:#fff0f4}
 .chip.leg{background:linear-gradient(#ffd75e,#c97a10);color:#3a1606;box-shadow:0 0 8px rgba(255,200,60,.8)}
 .card.r3{--b1:#fff6d0;--b2:#f0b030;--edge:#b8680a;--c1:#ffd75e;--c2:#d9890a;--c3:#6a2a06;--tag:#8a4a00;--glow:0 0 30px rgba(255,190,50,.95)}
 .card.r3::after{content:'';position:absolute;inset:2.7% 16.5% 5.4% 9.7%;border-radius:6px 44px 6px 44px;pointer-events:none;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.75) 50%,transparent 65%);background-size:250% 100%;animation:sheen 2s linear infinite}
@@ -540,7 +543,7 @@ const MON={
 };
 let PK='';try{const c=localStorage.getItem('gumiho-cur');if(c)PK='@'+c;}catch(_){}
 let DEX={seen:{},kills:{}};
-function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp};}catch(_){}}
+function loadDex(){DEX={seen:{},kills:{}};try{const d=JSON.parse(localStorage.getItem('gumiho-dex'+PK)||'null');if(d&&d.seen)DEX={seen:d.seen,kills:d.kills||{},stage:Math.min(3,d.stage||0),hell:!!d.hell,hb:d.hb||null,me:!!d.me,mb:d.mb||null,mg:!!d.mg,jp:!!d.jp,pu:!!d.pu};}catch(_){}}
 loadDex();
 function saveDex(){try{localStorage.setItem('gumiho-dex'+PK,JSON.stringify(DEX));}catch(_){}}
 
@@ -701,18 +704,79 @@ const LDEF={
   wrath:{name:'천벌',seal:'罰',base:'하늘에서 거대한 벼락 3줄기가 적들을 내리칩니다.',ups:['벼락 5줄기, 피해 증가','벼락 7줄기, 쿨타임 감소']},
   clone:{name:'여우불 분신',seal:'分',base:'달기의 분신 2명이 곁을 돌며 적을 추적하는 불구슬을 쏩니다.',ups:['분신 3명, 피해 증가','분신 4명, 연사 속도 증가']},
   storm:{name:'구미호 폭염',seal:'焰',base:'주기적으로 달기를 중심으로 거대한 불꽃 파동이 퍼집니다.',ups:['범위와 피해 증가','범위 최대, 쿨타임 감소']},
-  rebirth:{name:'불사의 구슬',seal:'生',base:'쓰러져도 한 번 체력 60%로 부활하고 폭발을 일으킵니다.',ups:['부활 2회','부활 3회']}
+  rebirth:{name:'불사의 구슬',seal:'生',base:'쓰러질 때 30% 확률로 체력 60%로 부활하고 폭발을 일으킵니다. (1회)',ups:['부활 가능 횟수 2회 (확률 30%)','부활 가능 횟수 3회 (확률 30%)']}
 };
 const LG_WR={cd:[3.4,3.0,2.6],n:[3,5,7],dmg:[170,230,300]};
+const YDEF={
+  judge:{name:'염라의 심판',seal:'閻',base:'14초마다 염라의 손이 화면 안 모든 적에게 심판을 내립니다.',ups:[]},
+  scythe:{name:'명부의 낫',seal:'冥',base:'거대한 저승의 낫 3자루가 달기 주위를 돌며 적을 베어냅니다.',ups:[]}
+};
+function ylOn(k){return !!(S.yl&&S.yl[k]);}
+function updYeom(dt){
+  const s=S,Y=s.yl;if(!Y)return;const p=s.p;
+  if(Y.judge){
+    if(s.yjt>=0){
+      s.yjt+=dt;
+      if(s.yjt>=.7&&!s.yjd){
+        s.yjd=true;s.shake=1;
+        for(const e of s.en){if(e.dead)continue;if(Math.hypot(e.x-p.x,e.y-p.y)<900)hit(e,e.type==='boss'?420:760,0,0);}
+      }
+      if(s.yjt>=1.6)s.yjt=-1;
+    }else{
+      s.ycj=(s.ycj===undefined?6:s.ycj)-dt;
+      if(s.ycj<=0){s.ycj=14*cdMul();s.yjt=0;s.yjd=false;toast('염라의 심판!');}
+    }
+  }
+  if(Y.scythe){
+    s.ysa=((s.ysa||0)+dt*2.4)%TAU;const R=170*areaMul();
+    for(let i=0;i<3;i++){
+      const a=s.ysa+i*TAU/3,x=p.x+Math.cos(a)*R,y=p.y+Math.sin(a)*R;
+      for(const e of s.en){
+        if(e.dead)continue;
+        if((e.yc||0)>0){e.yc-=dt/3;continue;}
+        if(Math.hypot(e.x-x,e.y-y)<54+e.r){e.yc=.4;const k=Math.atan2(e.y-p.y,e.x-p.x);hit(e,e.type==='boss'?55:110,Math.cos(k)*60,Math.sin(k)*60);}
+      }
+    }
+  }
+}
+function drawYeom(camX,camY){
+  const s=S,Y=s.yl;if(!Y)return;const p=s.p;
+  if(Y.scythe){
+    const R=170*areaMul();
+    for(let i=0;i<3;i++){
+      const a=(s.ysa||0)+i*TAU/3,x=p.x-camX+Math.cos(a)*R,y=p.y-camY+Math.sin(a)*R;
+      ctx.save();ctx.translate(x,y);ctx.rotate(a+Math.PI/2);ctx.globalCompositeOperation='lighter';
+      ctx.shadowColor='#b03aff';ctx.shadowBlur=22;
+      ctx.strokeStyle='rgba(215,150,255,.9)';ctx.lineWidth=7;ctx.lineCap='round';
+      ctx.beginPath();ctx.arc(0,24,58,Math.PI*1.12,Math.PI*1.88);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.arc(0,24,58,Math.PI*1.15,Math.PI*1.85);ctx.stroke();
+      ctx.restore();
+    }
+  }
+  if(Y.judge&&s.yjt>=0){
+    const t=s.yjt,cv=ctx.canvas,W=cv.width,H=cv.height;
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);
+    const warn=Math.min(1,t/.7);
+    ctx.fillStyle='rgba(60,0,40,'+(.25*warn)+')';ctx.fillRect(0,0,W,H);
+    if(t>=.7){const a=Math.max(0,1-(t-.7)/.5);ctx.fillStyle='rgba(255,70,70,'+(.55*a)+')';ctx.fillRect(0,0,W,H);}
+    ctx.globalAlpha=Math.min(1,t/.3)*Math.max(0,1-(t-1)/.6);
+    ctx.fillStyle='#ffd0d0';ctx.shadowColor='#d01030';ctx.shadowBlur=40;
+    ctx.font='bold '+Math.round(H*.34)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('審',W/2,H*.46);
+    ctx.restore();
+  }
+}
 function lgLv(k){return (S.lg&&S.lg[k])||0;}
 function tryRebirth(){
   const s=S,L=s.lg;
   if(!L||!L.rebirth||(s.lgUsed||0)>=L.rebirth)return false;
+  if(Math.random()>=.3)return false;
   s.lgUsed=(s.lgUsed||0)+1;const p=s.p;
   p.hp=Math.round(p.max*.6);p.inv=2;s.shake=.8;
   s.fx.push({k:'fnova',r:0,R:460,sp:460/.5,life:.9,max:.9,dmg:420,frz:0,hit:new Set(),fire:true});
   for(let i=0;i<40;i++){const a=Math.random()*TAU,v=rnd(120,420);s.fx.push({k:'pt',x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.8,max:.8,c:i%2?'#ffd75e':'#ff7a3a',r:rnd(2,5)});}
-  toast('불사의 구슬이 부서졌다! 남은 부활 '+(L.rebirth-s.lgUsed)+'회');
+  toast('불사의 구슬이 부서졌다! 남은 기회 '+(L.rebirth-s.lgUsed)+'회');
   updateHud();
   return true;
 }
@@ -842,6 +906,7 @@ function castPossess(){
 function doPossess(){
   const s=S;
   s.pos.on=true;s.pos.t=POS.dur;s.pos.tick=0;
+  if(!DEX.pu){DEX.pu=true;saveDex();}
   const p=s.p;
   for(let i=0;i<70;i++){const a=Math.random()*TAU,v=rnd(80,380);s.fx.push({k:'pt',x:p.x,y:p.y-6,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.8,max:.8,c:i%3?'#c2243a':(i%2?'#1a0a1c':'#ff7a5a'),r:rnd(2,6)});}
   s.fx.push({k:'ring',life:.7,max:.7});
@@ -1282,7 +1347,7 @@ function pool(){
   for(const k in PDEF){const lv=S.ps[k]||0;if(lv<5)L.push({kind:'p',key:k,lv});}
   return L;
 }
-const RAR=[{n:'일반',cls:'r0',gain:1,heal:40},{n:'레어',cls:'r1',gain:2,heal:70},{n:'울트라 레어',cls:'r2',gain:3,heal:100},{n:'레전드',cls:'r3',gain:1,heal:0}];
+const RAR=[{n:'일반',cls:'r0',gain:1,heal:40},{n:'레어',cls:'r1',gain:2,heal:70},{n:'울트라 레어',cls:'r2',gain:3,heal:100},{n:'레전드',cls:'r3',gain:1,heal:0},{n:'염라',cls:'r4',gain:1,heal:0}];
 const rollRar=()=>{const r=Math.random(),l=P('luck');return r<.70-.05*l?0:r<.95-.02*l?1:2;};
 const levelDesc=(D,lv)=>lv===1?D.base:D.ups[lv-2];
 function openLevelUp(){
@@ -1300,10 +1365,19 @@ function openLevelUp(){
       choices[slot]={kind:'l',key:k,lv:lgLv(k),rar:3,gain:1};
     }
   }
+  if(S.stage>=3){
+    const cy=Object.keys(YDEF).filter(k=>!ylOn(k));
+    if(cy.length&&Math.random()<.3+.03*P('luck')){
+      const k=cy[Math.floor(Math.random()*cy.length)];
+      let sl=choices.findIndex(c=>c.kind!=='l');if(sl<0)sl=0;
+      choices[sl]={kind:'y',key:k,lv:0,rar:4,gain:1};
+    }
+  }
   $('cards').innerHTML=choices.map((c,i)=>{
     const R=RAR[c.rar];
     let name,seal,tag,desc;
     if(c.kind==='heal'){name='복숭아 한 알';seal='桃';tag='체력 회복';desc='체력을 '+R.heal+' 회복합니다.';}
+    else if(c.kind==='y'){const D=YDEF[c.key];name=D.name;seal=D.seal;tag='염라급 기술';desc=D.base;}
     else if(c.kind==='l'){const D=LDEF[c.key];name=D.name;seal=D.seal;tag=c.lv?'Lv '+c.lv+' → '+(c.lv+1):'새 레전드 기술';desc=levelDesc(D,c.lv+1);}
     else{
       const D=(c.kind==='w'?WDEF:PDEF)[c.key];
@@ -1321,6 +1395,7 @@ function pick(i){
   if(!c||s.state!=='levelup')return;
   sfxLv();
   if(c.kind==='w')s.w[c.key]=c.lv+c.gain;
+  else if(c.kind==='y'){(s.yl||(s.yl={}))[c.key]=1;toast('염라급 기술 획득: '+YDEF[c.key].name);s.shake=.7;}
   else if(c.kind==='l'){(s.lg||(s.lg={}))[c.key]=c.lv+1;toast('레전드 기술 획득: '+LDEF[c.key].name);s.shake=.4;}
   else if(c.kind==='p'){
     s.ps[c.key]=c.lv+c.gain;
@@ -1640,7 +1715,7 @@ function update(dt){
 
   stepFx(dt);
 
-  updInf(dt);updTsw(dt);updPossess(dt);updRage(dt);updJutan(dt);updJut(dt);if(s.pet)updPet(dt);if(s.jpet)updJPet(dt);updLeg(dt);
+  updInf(dt);updTsw(dt);updPossess(dt);updRage(dt);updJutan(dt);updJut(dt);if(s.pet)updPet(dt);if(s.jpet)updJPet(dt);updLeg(dt);updYeom(dt);
   if(s.cuts.length&&s.state==='play')startCut(s.cuts.shift());
   else if(s.pending>0&&s.state==='play')openLevelUp();
   if(s.b5&&!s.hellDone&&s.state==='play'&&!s.cuts.length){s.hellDone=true;s.cuts.push(hellCut());}
@@ -2234,7 +2309,7 @@ function draw(){
   if(s.state==='cut')drawCutGround(camX,camY);
   for(const f of s.fx){if(f.k==='tsw')drawTswFx(f,camX,camY);else if(f.k==='fnova')drawNova(f,camX,camY);}
   drawFox(p.x-camX,p.y-camY);
-  drawPet(camX,camY);drawJPet(camX,camY);drawLeg(camX,camY);
+  drawPet(camX,camY);drawJPet(camX,camY);drawLeg(camX,camY);drawYeom(camX,camY);
   if(s.state==='cut')drawCutFront(camX,camY);
 
   for(const f of s.flames){
@@ -2461,6 +2536,7 @@ function buildLoadout(){
   let h='';
   for(const k in S.w)h+='<div class="chip"><span>'+WDEF[k].seal+'</span><b>'+S.w[k]+'</b></div>';
   for(const k in (S.lg||{}))h+='<div class="chip leg"><span>'+LDEF[k].seal+'</span><b>'+S.lg[k]+'</b></div>';
+  for(const k in (S.yl||{}))h+='<div class="chip yeom"><span>'+YDEF[k].seal+'</span><b>염</b></div>';
   for(const k in S.ps)h+='<div class="chip pas"><span>'+PDEF[k].seal+'</span><b>'+S.ps[k]+'</b></div>';
   $('loadout').innerHTML=h;
 }
@@ -2842,7 +2918,7 @@ const TITLES=[
   {k:'surv',n:'버티는 여우',d:'10분 이상 생존',ok:()=>BEST.time>=600},
   {k:'nine',n:'꼬리 아홉 달린 여우',d:'꼬리 9개 달성 (레벨 17)',ok:()=>BEST.lvl>=17},
   {k:'oni',n:'두억시니를 마주한 자',d:'두억시니 최종 단계를 만남',ok:()=>(DEX.stage||0)>=3},
-  {k:'merge',n:'하나가 된 둘',d:'두억시니와 합체',ok:()=>!!DEX.mg},
+  {k:'merge',n:'하나가 된 둘',d:'두억시니 빙의를 사용',ok:()=>!!DEX.pu},
   {k:'hell',n:'연옥의 방문자',d:'연옥에 도달',ok:()=>!!DEX.hell},
   {k:'jut',n:'술 취한 불꽃',d:'주탄동자를 쓰러뜨리고 빙의를 얻음',ok:()=>!!DEX.jp},
   {k:'void',n:'멸연옥의 생존자',d:'멸연옥에 도달',ok:()=>!!DEX.me}
@@ -2913,7 +2989,7 @@ function mergeDexObj(a,b){
   a=a||{};b=b||{};const o={seen:Object.assign({},a.seen,b.seen),kills:{}};
   for(const k of new Set([...Object.keys(a.kills||{}),...Object.keys(b.kills||{})]))o.kills[k]=Math.max((a.kills||{})[k]||0,(b.kills||{})[k]||0);
   o.stage=Math.max(a.stage||0,b.stage||0);
-  for(const f of ['hell','me','mg','jp'])o[f]=!!(a[f]||b[f]);
+  for(const f of ['hell','me','mg','jp','pu'])o[f]=!!(a[f]||b[f]);
   for(const f of ['hb','mb']){const x=a[f],y=b[f];o[f]=!x?(y||null):!y?x:((y.t||0)>(x.t||0)?y:x);}
   return o;
 }
