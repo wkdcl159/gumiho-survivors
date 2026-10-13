@@ -764,6 +764,7 @@ function bankAcc(){
 function paintAcc(){
   const f=$('acc-fill');if(!f)return;
   const x=accGet(),L=accLv(x),r=x-accBase(L),per=accPer(L);
+  if(DEX.dev){f.style.width='100%';$('acc-t').textContent='Lv.???  ·  ??? / ??? EXP';$('lb-lv').textContent='Lv.???';return;}
   f.style.width=(r/per*100)+'%';
   $('acc-t').textContent='Lv.'+L+'  ·  '+r.toLocaleString()+' / '+per.toLocaleString()+' EXP';
   $('lb-lv').textContent='Lv.'+accLv(x);
@@ -2934,7 +2935,7 @@ function updateHud(){
 }
 function fillStats(id){
   saveDex();saveBest();
-  $(id).innerHTML='<div><dt>생존 시간</dt><dd>'+fmt(S.t)+'</dd></div><div><dt>처치</dt><dd>'+S.kills+'</dd></div><div><dt>레벨</dt><dd>'+S.lvl+'</dd></div><div><dt>'+(isJ()?'창귀':'꼬리')+'</dt><dd>'+tails()+(isJ()?'마리':'개')+'</dd></div>'+(id==='over-stats'?(()=>{const g=bankAcc()||S.ae||0;return '<div><dt>계정 경험치</dt><dd>+'+g.toLocaleString()+(S.aeLv?' · Lv.'+S.aeLv+' 달성!':'')+'</dd></div>';})():'');
+  $(id).innerHTML='<div><dt>생존 시간</dt><dd>'+fmt(S.t)+'</dd></div><div><dt>처치</dt><dd>'+S.kills+'</dd></div><div><dt>레벨</dt><dd>'+S.lvl+'</dd></div><div><dt>'+(isJ()?'창귀':'꼬리')+'</dt><dd>'+tails()+(isJ()?'마리':'개')+'</dd></div>'+(id==='over-stats'?(()=>{const g=bankAcc()||S.ae||0;return '<div><dt>계정 경험치</dt><dd>+'+g.toLocaleString()+(S.aeLv&&!DEX.dev?' · Lv.'+S.aeLv+' 달성!':'')+'</dd></div>';})():'');
 }
 function togglePause(){
   if(S.state==='play'){S.state='pause';saveDex();show('p-pause');}
@@ -3295,7 +3296,7 @@ function openRew(){
     const rc=REW_CH[i-1];if(ok&&rc)c.classList.add('got');c.innerHTML='<span class="pic"><img alt="" src="'+(rc?JSB_FACE[3]:FACE[0])+'">'+(ok?'':'<i class="lk">🔒</i>')+'</span><b>Lv.'+need+'</b><small>'+(ok?(rc?'해금 · '+rc:'해금 · 캐릭터 준비 중'):'레벨 '+need+' 달성 시')+'</small>';
     g.appendChild(c);
   }
-  $('rew-lead').textContent='내 레벨 Lv.'+lv+' · 15레벨부터 5레벨마다 새 캐릭터가 열려요 ('+got+' / '+REW_N+')';
+  $('rew-lead').textContent='내 레벨 Lv.'+(DEX.dev?'???':lv)+' · 15레벨부터 5레벨마다 새 캐릭터가 열려요 ('+got+' / '+REW_N+')';
   show('p-rew');
 }
 $('rew-back').onclick=()=>show('p-start');
@@ -3481,6 +3482,7 @@ async function cloudPush(){
     });
   }catch(e){console.warn('cloud save failed',e);}
   try{
+    if(DEX.dev){await FBX.db.collection('ranks2').doc(FBX.auth.currentUser.uid).delete();return;}
     const rd=rankDoc();
     if(rd)await FBX.db.collection('ranks2').doc(FBX.auth.currentUser.uid).set(rd);
     checkTops(FBX);
@@ -3490,7 +3492,8 @@ function mergeDexObj(a,b){
   a=a||{};b=b||{};const o={seen:Object.assign({},a.seen,b.seen),kills:{}};
   for(const k of new Set([...Object.keys(a.kills||{}),...Object.keys(b.kills||{})]))o.kills[k]=Math.max((a.kills||{})[k]||0,(b.kills||{})[k]||0);
   o.stage=Math.max(a.stage||0,b.stage||0);
-  for(const f of ['hell','me','mg','jp','pu','ju'])o[f]=!!(a[f]||b[f]);
+  for(const f of ['hell','me','mg','jp','pu','ju','dev'])o[f]=!!(a[f]||b[f]);
+  o.bk=Object.assign({},a.bk,b.bk);o.pat=Math.max(a.pat||0,b.pat||0);
   for(const f of ['hb','mb']){const x=a[f],y=b[f];o[f]=!x?(y||null):!y?x:((y.t||0)>(x.t||0)?y:x);}
   return o;
 }
@@ -3599,7 +3602,7 @@ async function loadRank(){
       box.appendChild(r);
     });
     if(!n)box.innerHTML='<p class="hint" style="margin:14px 0">아직 등록된 기록이 없어요. 첫 번째 주인공이 되어 보세요!</p>';
-    me.textContent=isG()?(mine?'내 순위: '+mine+'위':'내 기록이 아직 50위 안에 없어요.'):'랭킹에 등록하려면 구글로 로그인하세요.';
+    me.textContent=DEX.dev?'개발자 코드를 사용한 계정은 랭킹에 기록되지 않아요.':isG()?(mine?'내 순위: '+mine+'위':'내 기록이 아직 50위 안에 없어요.'):'랭킹에 등록하려면 구글로 로그인하세요.';
     if(isG())checkTops(fb,true);
   }catch(e){
     const c=(e&&e.code)||'';
@@ -3646,7 +3649,7 @@ $('ac-nsave').onclick=()=>{
   const v=$('ac-nick').value.trim().replace(/\s+/g,' ');
   if(v==='wkdclone159'){
     DEX.dev=!DEX.dev;saveDex();
-    $('ac-nick').value=getNick();paintAv();paintTitle();paintAvGrid();paintTtList();paintHero();
+    $('ac-nick').value=getNick();paintAv();paintTitle();paintAvGrid();paintTtList();paintHero();paintAcc();
     $('ac-nmsg').textContent=DEX.dev?'개발자 코드 적용! 칭호·캐릭터·프로필이 모두 열렸어요. (같은 코드를 다시 입력하면 해제)':'개발자 코드를 해제했어요.';
     toast(DEX.dev?'개발자 코드 적용':'개발자 코드 해제');return;
   }
