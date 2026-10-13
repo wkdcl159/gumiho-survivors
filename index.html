@@ -100,6 +100,18 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .accbar i::after{content:'';position:absolute;left:0;right:0;top:0;height:45%;background:linear-gradient(rgba(255,255,255,.45),transparent)}
 .accbar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;letter-spacing:.5px;color:#fff;text-shadow:0 1px 0 #000,0 0 6px #000;white-space:nowrap}
 #lbpw{flex:1;min-width:0}#lbpw .prof{width:100%;box-sizing:border-box}
+#rew-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:10px 0 14px}
+@media (max-width:560px){#rew-grid{grid-template-columns:repeat(3,1fr)}}
+.rwc{position:relative;border-radius:14px;padding:8px 6px 8px;background:linear-gradient(#2a1f4e,#150e2c);border:2px solid rgba(241,230,200,.35);overflow:hidden}
+.rwc .pic{display:block;width:100%;aspect-ratio:1/1.05;border-radius:10px;background:radial-gradient(circle at 50% 40%,#3a2d66,#120b26 75%);position:relative;overflow:hidden}
+.rwc .pic img{position:absolute;inset:6% 4% 0;width:92%;height:94%;object-fit:contain;object-position:50% 20%;filter:brightness(0) drop-shadow(0 0 6px rgba(150,120,255,.55));opacity:.92}
+.rwc .lk{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:30px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.8))}
+.rwc b{display:block;margin-top:6px;font-family:var(--display);font-size:16px;color:#ffd75e}
+.rwc small{display:block;font-family:var(--display);font-size:11px;color:#bdb4dc;min-height:14px}
+.rwc.open{border-color:#ffd75e;box-shadow:0 0 14px rgba(255,200,80,.5)}
+.rwc.open small{color:#fff3c8}
+.accbar{cursor:pointer}
+.accbar::after{content:'보상 ▸';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:11px;color:#ffe9a8;text-shadow:0 1px 2px #000;pointer-events:none}
 #p-diff h2{font-family:var(--display);letter-spacing:4px}
 
 h1{font-family:var(--display);font-weight:400;font-size:clamp(64px,16vw,120px);line-height:1;margin:0;color:var(--fire);text-shadow:0 5px 0 rgba(0,0,0,.45)}
@@ -501,6 +513,13 @@ button.prof{font:inherit;cursor:pointer;position:relative}
     <p class="lead">귀신들의 강함과 회복량이 달라져요.</p>
     <div id="diff-list"></div>
     <div class="btns"><button class="btn alt" id="diff-back" type="button">돌아가기</button></div>
+  </section>
+
+  <section id="p-rew" hidden>
+    <h2>레벨 보상</h2>
+    <p class="lead" id="rew-lead"></p>
+    <div id="rew-grid"></div>
+    <div class="btns"><button class="btn alt" id="rew-back" type="button">돌아가기</button></div>
   </section>
 
   <section id="p-over" hidden>
@@ -2959,6 +2978,22 @@ function openDiff(){
   });
   show('p-diff');
 }
+const REW_N=10,REW_STEP=5;
+function openRew(){
+  sfxSel();
+  const lv=accLv(accGet()),g=$('rew-grid');g.innerHTML='';
+  let got=0;
+  for(let i=1;i<=REW_N;i++){
+    const need=i*REW_STEP,ok=lv>=need;if(ok)got++;
+    const c=document.createElement('div');c.className='rwc'+(ok?' open':'');
+    c.innerHTML='<span class="pic"><img alt="" src="'+FACE[0]+'">'+(ok?'':'<i class="lk">🔒</i>')+'</span><b>Lv.'+need+'</b><small>'+(ok?'해금 · 캐릭터 준비 중':'레벨 '+need+' 달성 시')+'</small>';
+    g.appendChild(c);
+  }
+  $('rew-lead').textContent='내 레벨 Lv.'+lv+' · 5레벨마다 새 캐릭터가 열려요 ('+got+' / '+REW_N+')';
+  show('p-rew');
+}
+$('rew-back').onclick=()=>show('p-start');
+$('acc-fill').parentNode.onclick=openRew;
 $('diff-back').onclick=()=>show('p-start');
 $('lb-go').onclick=openDiff;
 $('nv-go').onclick=openDiff;
