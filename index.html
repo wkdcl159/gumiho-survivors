@@ -218,6 +218,16 @@ button.prof{font:inherit;cursor:pointer}
 .ttc.on{border-color:#ffd75e;box-shadow:0 0 12px rgba(255,200,80,.6)}
 .ttc.lock{opacity:.55}
 #ac-del{color:#ff9a8a}
+#ov #p-rank{max-width:420px;width:100%;box-sizing:border-box;padding:16px}
+#rk-list{display:flex;flex-direction:column;gap:6px;max-height:54vh;overflow:auto}
+.rkr{display:flex;align-items:center;gap:9px;padding:6px 10px;background:rgba(10,8,30,.7);border:2px solid rgba(241,230,200,.3);border-radius:10px;color:var(--paper);text-align:left}
+.rkr.me{border-color:#ffd75e;box-shadow:0 0 12px rgba(255,200,80,.5)}
+.rkr .no{width:30px;text-align:center;font-family:var(--display);font-size:16px;flex:none}
+.rkr .pic{width:36px;height:36px;border-radius:50%;flex:none;background-size:cover;background-position:50% 18%;border:2px solid rgba(241,230,200,.6)}
+.rkr .nm{flex:1;min-width:0;font-family:var(--display);font-size:14px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rkr .nm small{display:block;font-family:var(--body);font-size:10px;color:#ffd75e}
+.rkr .sc{text-align:right;font-family:var(--display);font-size:14px;line-height:1.2;flex:none}
+.rkr .sc small{display:block;font-family:var(--body);font-size:10px;color:#bdb4dc}
 @keyframes sheen{from{background-position:150% 0}to{background-position:-50% 0}}
 @media (prefers-reduced-motion:reduce){.card.r2::after{animation:none;display:none}}
 @media (hover:none){.card kbd{display:none}}
@@ -353,6 +363,7 @@ button.prof{font:inherit;cursor:pointer}
         <div id="lbside">
           <button class="sq" id="lb-dex" type="button"><i>📖</i>도감</button>
           <button class="sq" id="lb-hell" type="button"><i>🔥</i>연옥</button>
+          <button class="sq" id="lb-rank" type="button"><i>🏆</i>랭킹</button>
         </div>
         <div class="isle"></div>
         <img id="hero" alt="달기">
@@ -383,6 +394,13 @@ button.prof{font:inherit;cursor:pointer}
       <p id="lg-err" class="lgerr"></p>
     </div>
     <div class="btns col"><button class="btn" id="lg-go" type="button">로그인</button><button class="btn" id="lg-google" type="button" style="background:#fff;color:#3c4043;box-shadow:0 4px 0 #b9b9b9;display:flex;align-items:center;justify-content:center;gap:10px"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>구글로 로그인</button><button class="btn alt" id="lg-guest" type="button">게스트로 시작</button></div>
+  </section>
+  <section id="p-rank" hidden>
+    <h2>랭킹</h2>
+    <div class="lgtabs"><button type="button" class="on" id="rk-t1">전체</button><button type="button" id="rk-t2">연옥</button><button type="button" id="rk-t3">멸연옥</button></div>
+    <div id="rk-list"></div>
+    <p class="hint" id="rk-me" style="margin:8px 0 0;min-height:18px"></p>
+    <div class="btns col"><button class="btn alt" id="rk-back" type="button">돌아가기</button></div>
   </section>
   <section id="p-acct" hidden>
     <h2>프로필</h2>
@@ -2203,7 +2221,7 @@ function renderBest(){
   const mm=Math.floor(BEST.time/60),ss=String(BEST.time%60).padStart(2,'0');
   e.innerHTML='최고 기록 · 생존 <b>'+mm+':'+ss+'</b> · 처치 <b>'+BEST.kills+'</b> · 레벨 <b>'+BEST.lvl+'</b> · 두억시니 <b>'+(DEX.stage||0)+'단계</b>';
 }
-function show(id){dexOpen=id==='p-dex';ov.classList.toggle('lobbybg',id==='p-start'||id==='p-login'||id==='p-acct');if(id==='p-start')renderBest();ov.classList.add('on');for(const el of ov.children)el.hidden=el.id!==id;}
+function show(id){dexOpen=id==='p-dex';ov.classList.toggle('lobbybg',id==='p-start'||id==='p-login'||id==='p-acct'||id==='p-rank');if(id==='p-start')renderBest();ov.classList.add('on');for(const el of ov.children)el.hidden=el.id!==id;}
 function hideOv(){dexOpen=false;ov.classList.remove('on');}
 const THUMB={wisp:[2.3,-3],gob:[1.9,-3],egg:[2,0],hwisp:[2.3,-3],hgob:[1.9,-3],hegg:[2,0],jutan:[.62,-6],mwisp:[2.3,-3],mgob:[1.9,-3],megg:[1.9,0],boss:[.95,-7]};
 function renderDex(){
@@ -2678,6 +2696,10 @@ async function cloudPush(){
       t:Date.now()
     });
   }catch(e){console.warn('cloud save failed',e);}
+  try{
+    const rd=rankDoc();
+    if(rd)await FBX.db.collection('ranks').doc(FBX.auth.currentUser.uid).set(rd);
+  }catch(e){console.warn('rank save failed',e);}
 }
 function mergeDexObj(a,b){
   a=a||{};b=b||{};const o={seen:Object.assign({},a.seen,b.seen),kills:{}};
@@ -2725,6 +2747,55 @@ $('lg-google').onclick=async()=>{
     err.textContent=c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'?'':c==='auth/unauthorized-domain'?'이 사이트 주소가 Firebase 승인된 도메인에 없어요.':c==='auth/operation-not-allowed'?'Firebase에서 구글 로그인이 아직 켜져 있지 않아요.':c==='auth/popup-blocked'?'팝업이 차단됐어요. 팝업을 허용해 주세요.':'구글 로그인에 실패했어요. ('+(c||'네트워크 오류')+')';
   }
 };
+
+// ---- 랭킹 (구글 로그인 사용자만 등록) ----
+const RK_MAX={t:21600,k:500000,lvl:300};
+let rkTab=1;
+function rankDoc(){
+  const pj=s=>{try{return JSON.parse(s||'null');}catch(_){return null;}};
+  const dex=pj(lsGet('gumiho-dex'))||{},best=pj(lsGet('gumiho-best'))||{};
+  const cl=(v,m)=>Math.max(0,Math.min(m,Math.floor(+v||0)));
+  const d={nick:String(getNick()).slice(0,12),av:avKey(),title:ttKey(),lvl:cl(best.lvl,RK_MAX.lvl),u:Date.now()};
+  let any=false;
+  if(best.time>0){d.t1=cl(best.time,RK_MAX.t);d.k1=cl(best.kills,RK_MAX.k);any=true;}
+  if(dex.hb&&dex.hb.t>0){d.t2=cl(dex.hb.t,RK_MAX.t);d.k2=cl(dex.hb.k,RK_MAX.k);any=true;}
+  if(dex.mb&&dex.mb.t>0){d.t3=cl(dex.mb.t,RK_MAX.t);d.k3=cl(dex.mb.k,RK_MAX.k);any=true;}
+  return any?d:null;
+}
+const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+async function openRank(){
+  show('p-rank');rkTab=1;rkTabs();await loadRank();
+}
+function rkTabs(){for(let i=1;i<=3;i++)$('rk-t'+i).classList.toggle('on',i===rkTab);}
+async function loadRank(){
+  const box=$('rk-list'),me=$('rk-me');box.innerHTML='<p class="hint" style="margin:14px 0">불러오는 중…</p>';me.textContent='';
+  try{
+    const fb=await fbInit();
+    const f='t'+rkTab,kf='k'+rkTab;
+    const snap=await fb.db.collection('ranks').orderBy(f,'desc').limit(50).get();
+    const uid=fb.auth.currentUser?fb.auth.currentUser.uid:null;
+    box.innerHTML='';let mine=null,n=0;
+    snap.forEach(doc=>{
+      const d=doc.data();n++;
+      const a=AVATARS.find(x=>x.k===d.av)||AVATARS[0],tt=TITLES.find(x=>x.k===d.title),isMe=doc.id===uid;
+      if(isMe)mine=n;
+      const r=document.createElement('div');r.className='rkr'+(isMe?' me':'');
+      const medal=n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
+      r.innerHTML='<span class="no">'+medal+'</span><span class="pic" style="background-image:url('+a.src+')"></span><span class="nm"></span><span class="sc">'+fmtT(d[f]||0)+'<small>처치 '+(d[kf]||0)+'</small></span>';
+      const nm=r.querySelector('.nm');nm.textContent=d.nick||'이름 없음';
+      if(tt&&tt.k!=='t0'){const s=document.createElement('small');s.textContent=tt.n;nm.prepend(s);}
+      box.appendChild(r);
+    });
+    if(!n)box.innerHTML='<p class="hint" style="margin:14px 0">아직 등록된 기록이 없어요. 첫 번째 주인공이 되어 보세요!</p>';
+    me.textContent=isG()?(mine?'내 순위: '+mine+'위':'내 기록이 아직 50위 안에 없어요.'):'랭킹에 등록하려면 구글로 로그인하세요.';
+  }catch(e){
+    const c=(e&&e.code)||'';
+    box.innerHTML='<p class="hint" style="margin:14px 0">'+(c==='permission-denied'?'랭킹 읽기 권한이 없어요. (Firestore 규칙을 확인하세요)':c==='failed-precondition'?'랭킹을 만드는 중이에요. 잠시 뒤 다시 열어 주세요.':'랭킹을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.')+'</p>';
+  }
+}
+for(let i=1;i<=3;i++)$('rk-t'+i).onclick=()=>{rkTab=i;rkTabs();loadRank();};
+$('rk-back').onclick=()=>show('p-start');
+$('lb-rank').onclick=()=>{sfxSel();openRank();};
 let lgMode=1;
 function lgTab(m){lgMode=m;$('lg-t1').classList.toggle('on',m===1);$('lg-t2').classList.toggle('on',m===2);$('lg-pw2').hidden=m!==2;$('lg-go').textContent=m===1?'로그인':'가입하고 시작';$('lg-pw').autocomplete=m===1?'current-password':'new-password';$('lg-err').textContent='';}
 $('lg-t1').onclick=()=>lgTab(1);$('lg-t2').onclick=()=>lgTab(2);
