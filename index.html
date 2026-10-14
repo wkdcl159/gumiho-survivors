@@ -873,7 +873,7 @@ const UPDEF=[
  {k:'xp',n:'경험치',ic:'📈',max:10,base:50,u:4,fmt:v=>'경험치 획득 +'+v+'%'},
  {k:'yj',n:'엽전 획득',ic:'<i class="yj" style="font-size:32px"></i>',max:10,base:100,u:5,fmt:v=>'엽전 획득 +'+v+'%'}
 ];
-const upCost=(d,l)=>Math.round(d.base*(1+l*.6));
+const upCost=(d,l)=>Math.round(d.base*10*(1+l*.6));
 function upAll(){if(_up)return _up;let o={};try{o=JSON.parse(localStorage.getItem('gumiho-up'+PK)||'{}')||{};}catch(_){}_up=o;return o;}
 function upSave(o){_up=o;try{localStorage.setItem('gumiho-up'+PK,JSON.stringify(o));}catch(_){}}
 const skM=()=>.7+.05*U('sk');
@@ -913,6 +913,7 @@ function newGame(){
     en:[],gems:[],drops:[],pr:[],fx:[],txt:[],flames:[],jf:[],hand:null,thr:null,jutPhase:0,jutAt:0,jp:{on:false,t:0,cd:0},jutUnlock:false,jb:[],jm:[],jfl:null,
     w:{bead:1},ps:{},cd:{bead:.4,tail:1,talis:1},orb:0,acc:0,boss:120,magCd:60,won:false,shake:0,cuts:[],form:0,cut:null,camOff:0,bossN:0,ep:[],b5:false,skCd:0,stage:1,hellDone:false,pos:{on:false,t:0,cd:0,tick:0},posUnlock:false,pet:null,hellStart:0,hellKills0:0};
   S.char=curChar();applyChar(S.char);
+  S.p.max=maxHp();S.p.hp=S.p.max;
   buildLoadout();updateHud();
 }
 
