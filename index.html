@@ -825,12 +825,14 @@ const accBase=l=>250*(l-1)+25*(l-1)*(l-2);
 const addAe=n=>{S.ae=(S.ae||0)+n*DM().xm;};
 // 계정 레벨 보상: 매 레벨 엽전, 5레벨마다 3배. 레벨마다 엽전 획득 +1% (최대 +30%)
 const rwCoin=l=>(40+10*l)*(l%5===0?3:1);
-const lvBonus=()=>1+Math.min(.3,.01*(accLv(accGet())-1));
+const MAXLV=40;
+const myLv=()=>DEX.dev?MAXLV:accLv(accGet());
+const lvBonus=()=>1+Math.min(.3,.01*(myLv()-1));
 const rcGet=()=>{try{const a=JSON.parse(localStorage.getItem('gumiho-rc'+PK)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}};
-const rcCan=()=>{const lv=accLv(accGet()),c=new Set(rcGet());const o=[];for(let l=2;l<=lv;l++)if(!c.has(l))o.push(l);return o;};
+const rcCan=()=>{const lv=myLv(),c=new Set(rcGet());const o=[];for(let l=2;l<=lv;l++)if(!c.has(l))o.push(l);return o;};
 function rcClaim(ls){
   const c=new Set(rcGet());let sum=0;
-  for(const l of ls){if(l<2||l>accLv(accGet())||c.has(l))continue;c.add(l);sum+=rwCoin(l);}
+  for(const l of ls){if(l<2||l>myLv()||c.has(l))continue;c.add(l);sum+=rwCoin(l);}
   if(sum){try{localStorage.setItem('gumiho-rc'+PK,JSON.stringify([...c]));localStorage.setItem('gumiho-yj'+PK,String(yjGet()+sum));}catch(_){}try{cloudPush();}catch(_){}paintYj();}
   return sum;
 }
@@ -2384,7 +2386,7 @@ const GHI={img:new Image(),ok:false};GHI.img.onload=()=>{GHI.ok=true;};GHI.img.s
 try{document.documentElement.style.setProperty('--gh','url(data:image/webp;base64,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)');}catch(_){}
 const JH=[40,78,86,94];
 const CHAR_LV={jsb:15};
-const charOwned=k=>k==='dalgi'||!!DEX.dev||accLv(accGet())>=(CHAR_LV[k]||1);
+const charOwned=k=>k==='dalgi'||!!DEX.dev||myLv()>=(CHAR_LV[k]||1);
 function curChar(){let k='dalgi';try{k=localStorage.getItem('gumiho-char'+PK)||'dalgi';}catch(_){}return charOwned(k)?k:'dalgi';}
 const isJ=()=>!!(S&&S.char==='jsb');
 const CN=()=>isJ()?'장산범':'달기';
@@ -3923,7 +3925,7 @@ function flyCoins(from,to,n){
 }
 function openRew(){
   sfxSel();
-  const lv=accLv(accGet()),g=$('rew-grid');g.className='ls';g.innerHTML='';
+  const lv=myLv(),g=$('rew-grid');g.className='ls';g.innerHTML='';
   const cl=new Set(rcGet()),MAXL=Math.max(40,lv+5);
   for(let l=2;l<=MAXL;l++){
     const ok=lv>=l,got=cl.has(l),big=l%5===0,ch=l===15;
@@ -4045,7 +4047,7 @@ const TITLES=[
   {k:'k500',n:'백귀야행의 주인',d:'한 판에 귀신 500마리 처치',ok:()=>BEST.kills>=500},
   {k:'t20',n:'불침번 여우',d:'20분 이상 생존',ok:()=>BEST.time>=1200},
   {k:'hard10',n:'지옥불 산책자',d:'어려움 난이도에서 10분 생존',ok:()=>BD[2].t>=600},
-  {k:'lv15',n:'노련한 여우',d:'계정 레벨 15 달성',ok:()=>accLv(accGet())>=15},
+  {k:'lv15',n:'노련한 여우',d:'계정 레벨 15 달성',ok:()=>myLv()>=15},
   {k:'egg100',n:'오늘 아침은 계란찜',d:'달걀귀신 100마리 처치',ok:()=>(DEX.kills.egg||0)>=100},
   {k:'wisp300',n:'불멍 전문가',d:'도깨비불 300마리 처치',ok:()=>(DEX.kills.wisp||0)>=300},
   {k:'gob100',n:'도깨비 뿔 수집가',d:'도깨비 100마리 처치',ok:()=>(DEX.kills.gob||0)>=100},
