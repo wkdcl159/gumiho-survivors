@@ -45,9 +45,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .dcard dt,.dcard dd{display:inline;margin:0}
 .dcard dd{margin-left:4px;color:var(--paper)}
 #hero{display:block;margin:0 auto 8px;height:clamp(110px,24vh,180px);width:auto}
-.hp{width:min(150px,32vw);height:12px;background:rgba(0,0,0,.45);border:1.5px solid rgba(241,230,200,.7);border-radius:2px;overflow:hidden}
+.hp{position:relative;width:min(150px,32vw);height:19px;background:rgba(0,0,0,.45);border:1.5px solid rgba(241,230,200,.7);border-radius:2px;overflow:hidden}
 .hp i{display:block;height:100%;width:100%;background:var(--seal)}
-#hpt{font-size:13px;color:var(--paper)}
+#hpt{position:absolute;left:0;right:0;top:0;line-height:19px;text-align:center;font-size:12px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 3px rgba(0,0,0,.8);pointer-events:none;font-variant-numeric:tabular-nums}
 .tails{display:flex;gap:3px;align-items:flex-end}
 #tails{margin-top:8px;padding-left:4px}
 .horns{display:flex;gap:7px;align-items:flex-end;margin-top:6px;padding-left:5px}
@@ -505,7 +505,7 @@ button.prof{font:inherit;cursor:pointer;position:relative}
   <div id="xp"><i id="xpf"></i></div>
   <div id="top">
     <div class="l">
-      <div class="hpw"><div class="hp"><i id="hpf"></i></div><span id="hpt">100 / 100</span></div>
+      <div class="hpw"><div class="hp"><i id="hpf"></i><span id="hpt">100 / 100</span></div></div>
       <div class="tails" id="tails"></div>
       <div class="horns" id="horns" title="뿔 게이지"></div>
     </div>
@@ -794,10 +794,29 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 addEventListener('pagehide',()=>{saveDex();try{bankAcc();}catch(_){}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&S&&S.state==='play')togglePause();});
 
-const joy={on:false,id:null,ox:0,oy:0,x:0,y:0};
-cv.addEventListener('pointerdown',e=>{joy.on=true;joy.id=e.pointerId;joy.ox=e.clientX;joy.oy=e.clientY;joy.x=0;joy.y=0;try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+const joy={on:false,id:null,ox:0,oy:0,x:0,y:0,fixed:false,touch:false};
+const JR=55;
+let TOUCHDEV=false;try{TOUCHDEV=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;}catch(_){}
+const joyPad=()=>({x:innerWidth/2,y:innerHeight-Math.min(130,innerHeight*.17)});
+cv.addEventListener('pointerdown',e=>{
+  const tch=e.pointerType==='touch'||e.pointerType==='pen';
+  if(tch)joy.touch=true;
+  if(tch){
+    const c=joyPad();
+    if(Math.hypot(e.clientX-c.x,e.clientY-c.y)>JR*2.4)return;
+    joy.fixed=true;joy.ox=c.x;joy.oy=c.y;
+    let dx=e.clientX-c.x,dy=e.clientY-c.y;const m=Math.hypot(dx,dy);if(m>JR){dx=dx/m*JR;dy=dy/m*JR;}
+    joy.on=true;joy.id=e.pointerId;joy.x=dx/JR;joy.y=dy/JR;
+  }else{joy.fixed=false;joy.on=true;joy.id=e.pointerId;joy.ox=e.clientX;joy.oy=e.clientY;joy.x=0;joy.y=0;}
+  try{cv.setPointerCapture(e.pointerId)}catch(_){}
+});
 cv.addEventListener('pointermove',e=>{
   if(!joy.on||e.pointerId!==joy.id)return;
+  if(joy.fixed){
+    const c=joyPad();let dx=e.clientX-c.x,dy=e.clientY-c.y;const m=Math.hypot(dx,dy);
+    if(m>JR){dx=dx/m*JR;dy=dy/m*JR;}
+    joy.x=dx/JR;joy.y=dy/JR;return;
+  }
   let dx=e.clientX-joy.ox,dy=e.clientY-joy.oy;const m=Math.hypot(dx,dy),R=50;
   if(m>R){joy.ox+=dx/m*(m-R);joy.oy+=dy/m*(m-R);dx=dx/m*R;dy=dy/m*R;}
   joy.x=dx/R;joy.y=dy/R;
@@ -3347,7 +3366,12 @@ function draw(){
   if(s.state==='cut'&&s.cut.C.me)drawTimeStop();
   if(s.state==='cut'&&s.cut.flash>0){ctx.fillStyle=rgba(PAL[s.cut.C.to].c,Math.min(RM?.35:.9,s.cut.flash));ctx.fillRect(0,0,W,H);}
 
-  if(joy.on){
+  if((TOUCHDEV||joy.touch)&&(s.state==='play'||s.state==='pause')){
+    const c=joyPad(),on=joy.on&&joy.fixed;
+    ctx.fillStyle='rgba(10,8,30,'+(on?.32:.2)+')';ctx.beginPath();ctx.arc(c.x,c.y,JR,0,TAU);ctx.fill();
+    ctx.strokeStyle='rgba(246,239,224,'+(on?.55:.32)+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(c.x,c.y,JR,0,TAU);ctx.stroke();
+    ctx.fillStyle='rgba(246,239,224,'+(on?.6:.34)+')';ctx.beginPath();ctx.arc(c.x+(on?joy.x*JR:0),c.y+(on?joy.y*JR:0),22,0,TAU);ctx.fill();
+  }else if(joy.on){
     ctx.strokeStyle='rgba(246,239,224,.28)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(joy.ox,joy.oy,50,0,TAU);ctx.stroke();
     ctx.fillStyle='rgba(246,239,224,.28)';ctx.beginPath();ctx.arc(joy.ox+joy.x*50,joy.oy+joy.y*50,20,0,TAU);ctx.fill();
   }
