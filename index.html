@@ -175,6 +175,13 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .upc .pips i.on{background:#ffb347;box-shadow:0 0 6px rgba(255,179,71,.6)}
 .upc button{grid-row:1/4;grid-column:3;border:0;border-radius:10px;padding:8px 10px;font-family:var(--display);font-size:15px;cursor:pointer;background:linear-gradient(#ffd75e,#e89a1a);color:#3a1606;min-width:74px}
 .upc button:disabled{background:#3a3060;color:#8f86b4;cursor:default}
+#lb-yj{display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+#rew-bal{font-family:var(--display);font-size:20px;color:#ffd75e;margin:4px 0}
+#rew-n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:#e63a2e;color:#fff;font-size:12px;line-height:18px;text-align:center;box-shadow:0 0 0 2px #fff3c4}
+.rwr button{border:0;border-radius:8px;padding:5px 12px;font-family:var(--display);font-size:14px;color:#3a1606;background:linear-gradient(#ffd75e,#e89a1a);cursor:pointer;animation:rwpulse 1.2s ease-in-out infinite}
+@keyframes rwpulse{50%{box-shadow:0 0 12px rgba(255,200,80,.9)}}
+.yjfly{position:fixed;z-index:99999;width:22px;height:22px;pointer-events:none;font-size:22px}
+.rwr.can{border-color:#ffd75e;color:var(--paper)}
 #rew-grid.ls{display:block;max-height:58vh;overflow:auto;padding-right:4px;margin:10px auto 14px;max-width:560px}
 .rwr{display:flex;align-items:center;gap:12px;padding:8px 12px;margin-bottom:6px;border-radius:10px;background:linear-gradient(#2a1f4e,#150e2c);border:2px solid rgba(241,230,200,.2);text-align:left;color:#9a91bd}
 .rwr b{font-family:var(--display);font-size:16px;color:#ffd75e;min-width:54px;font-weight:400}
@@ -513,7 +520,8 @@ button.prof{font:inherit;cursor:pointer;position:relative}
 <div id="ov" class="on lobbybg">
   <section id="p-start">
     <div id="lbtop">
-      <div id="lbpw"><button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><i class="rdot" id="lb-dot" hidden></i><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button><div class="accbar"><i id="acc-fill"></i><b id="acc-t"></b></div><button type="button" id="lb-rew"><span>🎁</span>레벨 보상 받기</button></div>
+      <div id="lbpw"><button type="button" class="prof" id="lb-prof"><b class="av" id="lb-av"></b><i class="rdot" id="lb-dot" hidden></i><span><u id="lb-title"></u><i id="lb-name">게스트</i><small><em id="lb-id"></em><span id="lb-lv">Lv.1</span></small></span></button><div class="accbar"><i id="acc-fill"></i><b id="acc-t"></b></div><button type="button" id="lb-rew"><span>🎁</span>레벨 보상 받기<b id="rew-n" hidden></b></button></div>
+      <div class="pill" id="lb-yj"><i class="yj"></i> 0</div>
       <div class="pill" id="lb-time">⏱ —</div>
       <div class="pill" id="lb-kill">☠ —</div>
       <button class="rnd b-snd" id="lb-set" type="button" aria-label="사운드 설정">⚙</button>
@@ -642,7 +650,9 @@ button.prof{font:inherit;cursor:pointer;position:relative}
   <section id="p-rew" hidden>
     <h2>레벨 보상</h2>
     <p class="lead" id="rew-lead"></p>
+    <div id="rew-bal"></div>
     <div id="rew-grid"></div>
+    <div class="btns"><button class="btn" id="rew-all" type="button">모두 받기</button></div>
     <div class="btns"><button class="btn alt" id="rew-back" type="button">돌아가기</button></div>
   </section>
 
@@ -802,13 +812,17 @@ const addAe=n=>{S.ae=(S.ae||0)+n*DM().xm;};
 // 계정 레벨 보상: 매 레벨 엽전, 5레벨마다 3배. 레벨마다 엽전 획득 +1% (최대 +30%)
 const rwCoin=l=>(40+10*l)*(l%5===0?3:1);
 const lvBonus=()=>1+Math.min(.3,.01*(accLv(accGet())-1));
-const rlGet=()=>{try{const v=localStorage.getItem('gumiho-rl'+PK);return v===null?-1:Math.max(0,parseInt(v,10)||0);}catch(_){return -1;}};
-function grantLv(oldX,newX){
-  const lo=accLv(oldX),ln=accLv(newX);let cl=rlGet();if(cl<0)cl=lo;
-  let sum=0;for(let l=cl+1;l<=ln;l++)sum+=rwCoin(l);
-  try{localStorage.setItem('gumiho-rl'+PK,String(Math.max(cl,ln)));if(sum)localStorage.setItem('gumiho-yj'+PK,String(yjGet()+sum));}catch(_){}
-  return {lo,ln,sum};
+const rcGet=()=>{try{const a=JSON.parse(localStorage.getItem('gumiho-rc'+PK)||'[]');return Array.isArray(a)?a:[];}catch(_){return [];}};
+const rcCan=()=>{const lv=accLv(accGet()),c=new Set(rcGet());const o=[];for(let l=2;l<=lv;l++)if(!c.has(l))o.push(l);return o;};
+function rcClaim(ls){
+  const c=new Set(rcGet());let sum=0;
+  for(const l of ls){if(l<2||l>accLv(accGet())||c.has(l))continue;c.add(l);sum+=rwCoin(l);}
+  if(sum){try{localStorage.setItem('gumiho-rc'+PK,JSON.stringify([...c]));localStorage.setItem('gumiho-yj'+PK,String(yjGet()+sum));}catch(_){}try{cloudPush();}catch(_){}paintYj();}
+  return sum;
 }
+function paintYj(){const e=$('lb-yj');if(e)e.innerHTML='<i class="yj"></i> '+yjBal().toLocaleString();}
+const rlGet=()=>{try{const v=localStorage.getItem('gumiho-rl'+PK);return v===null?-1:Math.max(0,parseInt(v,10)||0);}catch(_){return -1;}};
+function grantLv(oldX,newX){return {lo:accLv(oldX),ln:accLv(newX),sum:0};}
 const accGet=()=>{try{return Math.max(0,parseInt(localStorage.getItem('gumiho-acc'+PK)||'0',10)||0);}catch(_){return 0;}};
 const yjGet=()=>{try{return Math.max(0,parseInt(localStorage.getItem('gumiho-yj'+PK)||'0',10)||0);}catch(_){return 0;}};
 const ysGet=()=>{try{return Math.max(0,parseInt(localStorage.getItem('gumiho-ys'+PK)||'0',10)||0);}catch(_){return 0;}};
@@ -854,6 +868,7 @@ function paintAcc(){
   f.style.width=(r/per*100)+'%';
   $('acc-t').textContent='Lv.'+L+'  ·  '+r.toLocaleString()+' / '+per.toLocaleString()+' EXP';
   $('lb-lv').textContent='Lv.'+accLv(x);
+  try{paintYj();const n=rcCan().length,b=$('rew-n');if(b){b.hidden=!n;b.textContent=n;}}catch(_){}
 }
 function newGame(){
   try{if(typeof S!=='undefined'&&S&&S.ae)bankAcc();}catch(_){}
@@ -3386,7 +3401,7 @@ function wipeFx(sec,dur){
     sec.animate([{opacity:0},{opacity:0,offset:.18},{opacity:1}],{duration:dur,easing:'ease-out'});
   }catch(_){}
 }
-function show(id){const prev=[...ov.children].find(el=>!el.hidden&&el.tagName==='SECTION');const same=prev&&prev.id===id&&ov.classList.contains('on');dexOpen=id==='p-dex';ov.classList.toggle('lobbybg',id==='p-start'||id==='p-login'||id==='p-acct'||id==='p-rank');if(id==='p-start')renderBest();ov.classList.add('on');for(const el of ov.children)el.hidden=el.id!==id;if(!same){const cur=$(id);if(cur)wipeFx(cur,420);}}
+function show(id){const prev=[...ov.children].find(el=>!el.hidden&&el.tagName==='SECTION');const same=prev&&prev.id===id&&ov.classList.contains('on');dexOpen=id==='p-dex';ov.classList.toggle('lobbybg',id==='p-start'||id==='p-login'||id==='p-acct'||id==='p-rank');if(id==='p-start'){renderBest();try{paintAcc();}catch(_){}}ov.classList.add('on');for(const el of ov.children)el.hidden=el.id!==id;if(!same){const cur=$(id);if(cur)wipeFx(cur,420);}}
 function hideOv(){dexOpen=false;ov.classList.remove('on');}
 const THUMB={wisp:[2.3,-3],gob:[1.9,-3],egg:[2,0],hwisp:[2.3,-3],hgob:[1.9,-3],hegg:[2,0],jutan:[.62,-6],mwisp:[2.3,-3],mgob:[1.9,-3],megg:[1.9,0],boss:[.95,-7]};
 function renderDex(){
@@ -3481,13 +3496,13 @@ function paintSettle(){
   h+='<div class="sr tot" style="animation-delay:'+(i++*.18+.1)+'s"><span>획득 엽전</span><span><i class="yj"></i> +'+r.tot.toLocaleString()+'</span></div>';
   {const lo=S.aeOld||0,ln=S.aeNew||0,L=accLv(ln),pr=accPer(L),cur=ln-accBase(L),f0=(accLv(lo)===L?(lo-accBase(L))/pr:0)*100,f1=cur/pr*100,rw=S.lvRw;
    h+='<div class="sr xp" style="animation-delay:'+(i++*.18+.2)+'s"><span>계정 Lv.'+L+'</span><span class="xb"><i style="width:'+f0+'%" data-w="'+f1+'"></i></span></div>';
-   if(rw&&rw.sum)h+='<div class="sr up" style="animation-delay:'+(i++*.18+.3)+'s"><span>레벨 '+rw.ln+' 달성!</span><span><i class="yj"></i> +'+rw.sum.toLocaleString()+'</span></div>';}
+   if(rw&&rw.ln>rw.lo)h+='<div class="sr up" style="animation-delay:'+(i++*.18+.3)+'s"><span>레벨 '+rw.ln+' 달성!</span><span>🎁 레벨 보상에서 수령</span></div>';}
   h+='<div class="sr have" style="animation-delay:'+(i*.18+.2)+'s"><span>보유 엽전</span><span><i class="yj"></i> '+yjBal().toLocaleString()+'</span></div>';
   $('settle').innerHTML=h;
   setTimeout(()=>{const b=document.querySelector('#settle .xb i');if(b)b.style.width=b.dataset.w+'%';},700);
 }
 let upCh='dalgi',upBack='p-over',upChd=null;
-function openUp(from,cc){
+function openUp(from,cc){paintYj();
   sfxSel();if(from){upBack=from;upChd=cc||null;upCh=cc?cc.k:curChar();}
   const own=CHARS.filter(c=>charOwned(c.k));if(!own.some(c=>c.k===upCh))upCh=own[0].k;
   $('up-coin').innerHTML='<i class="yj"></i> '+yjBal().toLocaleString()+' 엽전';
@@ -3870,21 +3885,46 @@ $('chd-back').onclick=()=>openChr();
 $('nv-chr').onclick=openChr;
 $('up-back').onclick=()=>{if(upBack==='chd'&&upChd)openChd(upChd);else show('p-over');};
 $('b-up2').onclick=()=>openUp('p-over');
+function flyCoins(from,to,n){
+  if(RM||!from||!to||!from.getBoundingClientRect)return;
+  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();
+  for(let k=0;k<Math.min(12,n);k++){
+    const c=document.createElement('i');c.className='yj yjfly';document.body.appendChild(c);
+    const x0=a.left+a.width/2-11,y0=a.top+a.height/2-11,x1=b.left+b.width/2-11,y1=b.top+b.height/2-11;
+    const mx=x0+(Math.random()-.5)*120,my=y0-30-Math.random()*60;
+    const an=c.animate([{transform:'translate('+x0+'px,'+y0+'px) scale(.6)',opacity:0},{transform:'translate('+mx+'px,'+my+'px) scale(1.15)',opacity:1,offset:.35},{transform:'translate('+x1+'px,'+y1+'px) scale(.8)',opacity:.9}],{duration:750+k*45,delay:k*40,easing:'cubic-bezier(.4,0,.6,1)',fill:'both'});
+    an.onfinish=()=>c.remove();
+  }
+}
 function openRew(){
   sfxSel();
   const lv=accLv(accGet()),g=$('rew-grid');g.className='ls';g.innerHTML='';
-  const MAXL=40;
+  const cl=new Set(rcGet()),MAXL=Math.max(40,lv+5);
   for(let l=2;l<=MAXL;l++){
-    const ok=lv>=l,big=l%5===0,ch=l===15;
-    const r=document.createElement('div');r.className='rwr'+(ok?' open':'')+(big?' big':'');
-    r.innerHTML='<b>Lv.'+l+'</b><span class="tx">'+(ch?'<img alt="" src="'+JSB_FACE[3]+'"> 새 캐릭터 · 장산범 해금 + ':'')+'<i class="yj"></i> 엽전 '+rwCoin(l).toLocaleString()+'</span><em>'+(ok?'✔ 받음':'🔒')+'</em>';
+    const ok=lv>=l,got=cl.has(l),big=l%5===0,ch=l===15;
+    const r=document.createElement('div');r.className='rwr'+(ok?' open':'')+(big?' big':'')+(ok&&!got?' can':'');r.id='rwr'+l;
+    r.innerHTML='<b>Lv.'+l+'</b><span class="tx">'+(ch?'<img alt="" src="'+JSB_FACE[3]+'"> 새 캐릭터 · 장산범 해금 + ':'')+'<i class="yj"></i> 엽전 '+rwCoin(l).toLocaleString()+'</span>';
+    if(ok&&!got){
+      const b=document.createElement('button');b.type='button';b.textContent='수령';
+      b.onclick=()=>{const n=rcClaim([l]);if(n){sfxSel();flyCoins(b,$('rew-bal'),n/20);rewBal();r.classList.remove('can');b.replaceWith(Object.assign(document.createElement('em'),{textContent:'✔ 받음'}));rewAllBtn();}};
+      r.appendChild(b);
+    }else{const e=document.createElement('em');e.textContent=got?'✔ 받음':'🔒';r.appendChild(e);}
     g.appendChild(r);
-    if(l===lv+1)setTimeout(()=>{try{r.scrollIntoView({block:'center'});}catch(_){}},60);
   }
-  const L=DEX.dev?'???':lv,pr=accPer(lv);
+  const L=DEX.dev?'???':lv;
   $('rew-lead').innerHTML='내 레벨 Lv.'+L+' · 레벨업마다 엽전 보상, 5레벨마다 3배 · 엽전 획득 +'+Math.round((lvBonus()-1)*100)+'% (레벨당 +1%, 최대 +30%) · 다음 레벨까지 '+(accBase(lv+1)-accGet()).toLocaleString()+' EXP';
+  rewBal();rewAllBtn();
   show('p-rew');
+  setTimeout(()=>{try{const f=g.querySelector('.can')||$('rwr'+(lv+1));if(f)g.scrollTop=Math.max(0,f.offsetTop-g.offsetTop-60);}catch(_){}},80);
 }
+function rewBal(){$('rew-bal').innerHTML='보유 <i class="yj"></i> '+yjBal().toLocaleString()+' 엽전';}
+function rewAllBtn(){const n=rcCan().length,b=$('rew-all');b.hidden=!n;b.textContent='모두 받기 ('+n+')';}
+$('rew-all').onclick=()=>{
+  const ls=rcCan(),sum=ls.reduce((a,l)=>a+rwCoin(l),0);
+  if(!ls.length)return;
+  flyCoins($('rew-all'),$('rew-bal'),12);rcClaim(ls);sfxSel();
+  setTimeout(openRew,900);
+};
 $('rew-back').onclick=()=>show('p-start');
 $('acc-fill').parentNode.onclick=openRew;$('lb-rew').onclick=openRew;
 $('diff-back').onclick=()=>show('p-start');
@@ -4063,7 +4103,7 @@ async function cloudPush(){
   if(!isG()||!FBX||!FBX.auth.currentUser)return;
   try{
     await FBX.db.collection('users').doc(FBX.auth.currentUser.uid).set({
-      dex:lsGet('gumiho-dex')||'',best:lsGet('gumiho-best')||'',av:lsGet('gumiho-av')||'',nick:lsGet('gumiho-nick')||'',title:lsGet('gumiho-title')||'',acc:lsGet('gumiho-acc')||'0',yj:lsGet('gumiho-yj')||'0',ys:lsGet('gumiho-ys')||'0',up:lsGet('gumiho-up')||'',rl:lsGet('gumiho-rl')||'',bestd:lsGet('gumiho-bestd')||'',top:lsGet('gumiho-top')||'',
+      dex:lsGet('gumiho-dex')||'',best:lsGet('gumiho-best')||'',av:lsGet('gumiho-av')||'',nick:lsGet('gumiho-nick')||'',title:lsGet('gumiho-title')||'',acc:lsGet('gumiho-acc')||'0',yj:lsGet('gumiho-yj')||'0',ys:lsGet('gumiho-ys')||'0',up:lsGet('gumiho-up')||'',rl:lsGet('gumiho-rl')||'',rc:lsGet('gumiho-rc')||'',bestd:lsGet('gumiho-bestd')||'',top:lsGet('gumiho-top')||'',
       t:Date.now()
     });
   }catch(e){console.warn('cloud save failed',e);}
@@ -4100,6 +4140,7 @@ async function cloudSync(u){
      localStorage.setItem('gumiho-top'+PK,JSON.stringify({d0:!!(lt.d0||ct.d0),d1:!!(lt.d1||ct.d1),d2:!!(lt.d2||ct.d2),lv:!!(lt.lv||ct.lv)}));}
     {const la=parseInt(lsGet('gumiho-acc')||'0',10)||0,ca=parseInt(c.acc||'0',10)||0;localStorage.setItem('gumiho-acc'+PK,String(Math.max(la,ca)));}
     {for(const k of ['yj','ys','rl']){const la=parseInt(lsGet('gumiho-'+k)||'0',10)||0,ca=parseInt(c[k]||'0',10)||0;localStorage.setItem('gumiho-'+k+PK,String(Math.max(la,ca)));}
+     {const a=pj(lsGet('gumiho-rc'))||[],b=pj(c.rc)||[];localStorage.setItem('gumiho-rc'+PK,JSON.stringify([...new Set([...(Array.isArray(a)?a:[]),...(Array.isArray(b)?b:[])])]));}
      const lu=pj(lsGet('gumiho-up'))||{},cu=pj(c.up)||{},mu={};
      for(const ch of new Set([...Object.keys(lu),...Object.keys(cu)])){mu[ch]={};for(const k of new Set([...Object.keys(lu[ch]||{}),...Object.keys(cu[ch]||{})]))mu[ch][k]=Math.max((lu[ch]||{})[k]||0,(cu[ch]||{})[k]||0);}
      localStorage.setItem('gumiho-up'+PK,JSON.stringify(mu));_up=null;}
