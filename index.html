@@ -933,9 +933,9 @@ let DI=0;try{DI=Math.max(0,Math.min(2,+localStorage.getItem('gumiho-diff')||0));
 const DM=()=>DIFFS[DI];
 function spawn(type,px,py){
   const s=S,T=ET[type],a=Math.random()*TAU,d=Math.hypot(W,H)/2+rnd(30,90);const dm=DM(),gt=s.t*dm.gr;
-  const H3=s.stage===3,d3=H3?Math.max(0,s.t-(s.me0||0)):0,H2=s.stage===2,RG=H2&&!!s.rage,hp=dm.hp*(type==='boss'?T.hp*(1+gt/150):T.hp*(1+gt/200))*(H2?1.8*(1+Math.max(0,s.t-s.hellStart)/120):1)*(RG?1.5:1)*(H3?1.3*(1+d3/100):1);
-  s.en.push({type,rg:RG,h:H2&&type!=='boss',x:px!==undefined?px:s.p.x+Math.cos(a)*d,y:py!==undefined?py:s.p.y+Math.sin(a)*d,r:T.r,hp,max:hp,spd:dm.spd*T.spd*rnd(.9,1.1)*(H2?1.1*Math.min(1.5,1+Math.max(0,s.t-s.hellStart)/600):1)*(RG?1.2:1)*(H3?Math.min(1.4,1+d3/500):1),dmg:dm.dmg*T.dmg*(1+gt/1200)*(H2?1.4*(1+Math.max(0,s.t-s.hellStart)/240):1)*(RG?1.5:1)*(H3?1.3*(1+d3/200):1),flash:0,fireCd:0,kx:0,ky:0,frz:0,ph:Math.random()*TAU,dead:false});
-  {const ne=s.en[s.en.length-1];if(ne&&ne.type!=='boss'&&ne.type!=='jutan'){const k=1+.05*(s.mkS||0);ne.hp*=k;ne.max*=k;ne.spd*=k;ne.dmg*=k;}}
+  const H3=s.stage===3,d3=H3?Math.max(0,s.t-(s.me0||0)):0,H2=s.stage===2,RG=H2&&!!s.rage,hp=dm.hp*(type==='boss'?T.hp*(1+gt/150):T.hp*(1+gt/400))*(H2?1.8*(1+Math.max(0,s.t-s.hellStart)/120):1)*(RG?1.5:1)*(H3?1.3*(1+d3/100):1);
+  s.en.push({type,rg:RG,h:H2&&type!=='boss',x:px!==undefined?px:s.p.x+Math.cos(a)*d,y:py!==undefined?py:s.p.y+Math.sin(a)*d,r:T.r,hp,max:hp,spd:dm.spd*T.spd*rnd(.9,1.1)*(H2?1.1*Math.min(1.5,1+Math.max(0,s.t-s.hellStart)/600):1)*(RG?1.2:1)*(H3?Math.min(1.4,1+d3/500):1),dmg:dm.dmg*T.dmg*(1+gt/2400)*(H2?1.4*(1+Math.max(0,s.t-s.hellStart)/240):1)*(RG?1.5:1)*(H3?1.3*(1+d3/200):1),flash:0,fireCd:0,kx:0,ky:0,frz:0,ph:Math.random()*TAU,dead:false});
+  {const ne=s.en[s.en.length-1];if(ne&&ne.type!=='boss'&&ne.type!=='jutan'){const k=1+.025*(s.mkS||0);ne.hp*=k;ne.max*=k;ne.spd*=k;ne.dmg*=k;}}
 }
 function spawnRandom(){
   const t=S.t,r=Math.random();let type='wisp';
@@ -2021,7 +2021,7 @@ function update(dt){
   // 15초마다 보스 제외 모든 몬스터 능력치 +5% (막이 바뀌면 초기화)
   {if(s.mkStage!==s.stage){s.mkStage=s.stage;s.mkT0=s.t;s.mkS=0;}
    const st=Math.floor((s.t-(s.mkT0||0))/15),ms=s.mkS||0;
-   if(st>ms){const r=(1+.05*st)/(1+.05*ms);s.mkS=st;for(const e of s.en){if(e.dead||e.type==='boss'||e.type==='jutan')continue;e.hp*=r;e.max*=r;e.spd*=r;e.dmg*=r;}}}
+   if(st>ms){const r=(1+.025*st)/(1+.025*ms);s.mkS=st;for(const e of s.en){if(e.dead||e.type==='boss'||e.type==='jutan')continue;e.hp*=r;e.max*=r;e.spd*=r;e.dmg*=r;}}}
   // 적
   const far=Math.hypot(W,H)/2+250,kd=Math.pow(.02,dt);
   for(const e of s.en){
