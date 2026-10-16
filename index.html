@@ -4414,6 +4414,7 @@ function closeIntro(){
 })();
 
 /* ---------- 루프 ---------- */
+try{if(localStorage.getItem('gumiho-accv'+PK)==='2'&&getNick()==='라스'){const k='gumiho-acc'+PK;if((parseInt(localStorage.getItem(k)||'0',10)||0)<584198){localStorage.setItem(k,'584198');localStorage.removeItem('gumiho-accv'+PK);}}}catch(_){}
 newGame();S.state='start';
 let last=performance.now(),hudT=0;
 function loop(now){
