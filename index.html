@@ -836,7 +836,7 @@ const POS={dur:60,cd:30,dmg:1.6,spd:1.25,def:.65,R:72,aura:8};
 const posOn=()=>!!(S&&S.pos&&S.pos.on);
 const jutOn=()=>!!(S&&S.jp&&S.jp.on);
 const dmgMul=()=>Math.pow(1.15,P('power'))*(1+.05*U('atk'))*(posOn()?POS.dmg:1);
-const areaMul=()=>Math.pow(1.1,P('area'));
+const areaMul=()=>Math.pow(1.1,P('area'))*(1+.04*U('area'));
 const cdMul=()=>Math.max(.2,Math.pow(.9,P('haste'))*(1-.03*U('cd')));
 const moveSpd=()=>150*Math.pow(1.1,P('speed'))*(1+.03*U('spd'))*(posOn()?POS.spd:1);
 const magR=()=>60+40*P('magnet')+10*U('mag');
@@ -873,6 +873,7 @@ const UPDEF=[
  {k:'atk',n:'공격력',ic:'⚔️',max:10,base:60,u:5,fmt:v=>'피해 +'+v+'%'},
  {k:'def',n:'방어',ic:'🛡️',max:8,base:70,u:3,fmt:v=>'받는 피해 -'+v+'%'},
  {k:'spd',n:'이동 속도',ic:'👟',max:8,base:50,u:3,fmt:v=>'이동 속도 +'+v+'%'},
+ {k:'area',n:'공격 범위',ic:'<svg viewBox=\'0 0 32 32\' width=\'30\' height=\'30\' fill=\'none\' stroke=\'currentColor\' stroke-linecap=\'round\'><circle cx=\'16\' cy=\'16\' r=\'3.5\' fill=\'currentColor\' stroke=\'none\'/><circle cx=\'16\' cy=\'16\' r=\'8\' stroke-width=\'2.4\'/><path d=\'M16 2.5a13.5 13.5 0 0 1 13.5 13.5M16 29.5A13.5 13.5 0 0 1 2.5 16\' stroke-width=\'2.4\'/></svg>',max:8,base:60,u:4,fmt:v=>'기술 범위 +'+v+'%'},
  {k:'cd',n:'기술 회전',ic:'⏳',max:8,base:80,u:3,fmt:v=>'쿨타임 -'+v+'%'},
  {k:'mag',n:'획득 범위',ic:'🧲',max:8,base:40,u:10,fmt:v=>'획득 범위 +'+v},
  {k:'xp',n:'경험치',ic:'📈',max:10,base:50,u:6,fmt:v=>'경험치 획득 +'+v+'%'},
