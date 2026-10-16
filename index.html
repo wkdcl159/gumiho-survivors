@@ -874,11 +874,13 @@ const UPDEF=[
  {k:'def',n:'방어',ic:'🛡️',max:8,base:70,u:3,fmt:v=>'받는 피해 -'+v+'%'},
  {k:'spd',n:'이동 속도',ic:'👟',max:8,base:50,u:3,fmt:v=>'이동 속도 +'+v+'%'},
  {k:'area',n:'공격 범위',ic:'<svg viewBox=\'0 0 32 32\' width=\'30\' height=\'30\' fill=\'none\' stroke=\'currentColor\' stroke-linecap=\'round\'><circle cx=\'16\' cy=\'16\' r=\'3.5\' fill=\'currentColor\' stroke=\'none\'/><circle cx=\'16\' cy=\'16\' r=\'8\' stroke-width=\'2.4\'/><path d=\'M16 2.5a13.5 13.5 0 0 1 13.5 13.5M16 29.5A13.5 13.5 0 0 1 2.5 16\' stroke-width=\'2.4\'/></svg>',max:8,base:60,u:4,fmt:v=>'기술 범위 +'+v+'%'},
+ {k:'ps',n:'투사체 속도',ic:'🏹',max:8,base:60,u:5,fmt:v=>'투사체 속도 +'+v+'%'},
  {k:'cd',n:'기술 회전',ic:'⏳',max:8,base:80,u:3,fmt:v=>'쿨타임 -'+v+'%'},
  {k:'mag',n:'획득 범위',ic:'🧲',max:8,base:40,u:10,fmt:v=>'획득 범위 +'+v},
  {k:'xp',n:'경험치',ic:'📈',max:10,base:50,u:6,fmt:v=>'경험치 획득 +'+v+'%'},
  {k:'yj',n:'엽전 획득',ic:'<i class="yj" style="font-size:32px"></i>',max:10,base:100,u:5,fmt:v=>'엽전 획득 +'+v+'%'}
 ];
+const psMul=()=>1+.05*U('ps');
 const upCost=(d,l)=>Math.round(d.base*10*(1+l*.6));
 function upAll(){if(_up)return _up;let o={};try{o=JSON.parse(localStorage.getItem('gumiho-up'+PK)||'{}')||{};}catch(_){}_up=o;return o;}
 function upSave(o){_up=o;try{localStorage.setItem('gumiho-up'+PK,JSON.stringify(o));}catch(_){}}
@@ -1632,7 +1634,7 @@ function shootBead(st){
   for(let i=0;i<st.n;i++){
     const t=ts[i%ts.length];let a=Math.atan2(t.y-p.y,t.x-p.x);
     if(i>=ts.length)a+=rnd(-.22,.22);
-    S.pr.push({k:'bead',x:p.x,y:p.y-8,vx:Math.cos(a)*340,vy:Math.sin(a)*340,dmg:st.dmg,pierce:st.pierce,life:1.4,r:7,hit:new Set()});
+    S.pr.push({k:'bead',x:p.x,y:p.y-8,vx:Math.cos(a)*340*psMul(),vy:Math.sin(a)*340*psMul(),dmg:st.dmg,pierce:st.pierce,life:1.4,r:7,hit:new Set()});
   }
 }
 function throwTalis(st){
@@ -1643,7 +1645,7 @@ function throwTalis(st){
     let a=Math.random()*TAU;
     if(near.length){const t=near[Math.floor(Math.random()*near.length)];a=Math.atan2(t.y-p.y,t.x-p.x);}
     a+=rnd(-.15,.15);
-    S.pr.push({k:'talis',x:p.x,y:p.y,vx:Math.cos(a)*270,vy:Math.sin(a)*270,dmg:st.dmg,pierce:999,life:1.7,r:13,rot:Math.random()*TAU,hit:new Set()});
+    S.pr.push({k:'talis',x:p.x,y:p.y,vx:Math.cos(a)*270*psMul(),vy:Math.sin(a)*270*psMul(),dmg:st.dmg,pierce:999,life:1.7,r:13,rot:Math.random()*TAU,hit:new Set()});
   }
 }
 function castThunder(st){
@@ -1666,7 +1668,7 @@ function castMoon(st){
   const p=S.p,a=p.dir,dirs=[a];if(st.both)dirs.push(a+Math.PI);
   for(const b of dirs)for(let i=0;i<st.n;i++){
     const an=b+(st.n===1?0:(i?.2:-.2));
-    S.pr.push({k:'moon',x:p.x,y:p.y-6,vx:Math.cos(an)*235,vy:Math.sin(an)*235,dmg:st.dmg,pierce:999,life:1.15,r:st.w*areaMul(),hit:new Set(),ang:an});
+    S.pr.push({k:'moon',x:p.x,y:p.y-6,vx:Math.cos(an)*235*psMul(),vy:Math.sin(an)*235*psMul(),dmg:st.dmg,pierce:999,life:1.15,r:st.w*areaMul(),hit:new Set(),ang:an});
   }
 }
 function castFrost(st){
@@ -1679,7 +1681,7 @@ function castSpirit(st){
   const p=S.p;
   for(let i=0;i<st.n;i++){
     const a=Math.random()*TAU;
-    S.pr.push({k:'spirit',x:p.x,y:p.y-8,vx:Math.cos(a)*230,vy:Math.sin(a)*230,sp:230,dmg:st.dmg,pierce:0,life:2.6,r:9,hit:new Set()});
+    S.pr.push({k:'spirit',x:p.x,y:p.y-8,vx:Math.cos(a)*230*psMul(),vy:Math.sin(a)*230*psMul(),sp:230*psMul(),dmg:st.dmg,pierce:0,life:2.6,r:9,hit:new Set()});
   }
 }
 function sweep(a,st){
@@ -2085,7 +2087,7 @@ function update(dt){
     if(q.k==='jecho'){
       q.age=(q.age||0)+dt;
       if(!q.ret&&q.age>.8){q.ret=true;q.hit=new Set();}
-      if(q.ret){const ra=Math.atan2(p.y-q.y,p.x-q.x);q.vx=Math.cos(ra)*380;q.vy=Math.sin(ra)*380;if(Math.hypot(p.x-q.x,p.y-q.y)<26)q.life=0;}
+      if(q.ret){const ra=Math.atan2(p.y-q.y,p.x-q.x);q.vx=Math.cos(ra)*380*psMul();q.vy=Math.sin(ra)*380*psMul();if(Math.hypot(p.x-q.x,p.y-q.y)<26)q.life=0;}
     }
     q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt;
     if(q.rot!==undefined)q.rot+=dt*12;
@@ -2469,7 +2471,7 @@ function jEcho(st){
   const p=S.p,a=p.dir,dirs=[a];if(st.both)dirs.push(a+Math.PI);
   for(const b of dirs)for(let i=0;i<st.n;i++){
     const an=b+(st.n===1?0:(i?.22:-.22));
-    S.pr.push({k:'jecho',x:p.x,y:p.y-6,vx:Math.cos(an)*300,vy:Math.sin(an)*300,dmg:st.dmg,pierce:999,life:2.4,r:st.w*1.3*areaMul(),hit:new Set(),ang:an,age:0,ret:false});
+    S.pr.push({k:'jecho',x:p.x,y:p.y-6,vx:Math.cos(an)*300*psMul(),vy:Math.sin(an)*300*psMul(),dmg:st.dmg,pierce:999,life:2.4,r:st.w*1.3*areaMul(),hit:new Set(),ang:an,age:0,ret:false});
   }
 }
 function jWail(lv,st){
