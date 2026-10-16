@@ -2042,7 +2042,7 @@ function update(dt){
     e.x+=(vx*sp+e.kx)*dt;e.y+=(vy*sp+e.ky)*dt;
     e.kx*=kd;e.ky*=kd;e.flash-=dt;e.fireCd-=dt;
     if(d>far){const a=Math.random()*TAU,r=Math.hypot(W,H)/2+60;e.x=p.x+Math.cos(a)*r;e.y=p.y+Math.sin(a)*r;}
-    if(p.inv<=0&&e.frz<=0&&d<p.r+e.r*.8)hurt(e.dmg);
+    if(p.inv<=0&&e.frz<=0&&d<p.r+e.r*.8)hurt(e.type==='boss'?e.dmg:Math.min(e.dmg,p.max*.25));
   }
 
   // 무기
