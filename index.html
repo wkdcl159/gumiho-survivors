@@ -1080,7 +1080,7 @@ function drawYeom(camX,camY){
     for(let i=0;i<3;i++){
       const a=(s.ysa||0)+i*TAU/3,x=p.x-camX+Math.cos(a)*R,y=p.y-camY+Math.sin(a)*R;
       ctx.save();ctx.translate(x,y);ctx.rotate(a+Math.PI/2);ctx.globalCompositeOperation='lighter';
-      ctx.shadowColor='#b03aff';ctx.shadowBlur=22;
+      ctx.strokeStyle='rgba(176,58,255,.3)';ctx.lineWidth=18;ctx.lineCap='round';ctx.beginPath();ctx.arc(0,24,58,Math.PI*1.12,Math.PI*1.88);ctx.stroke();
       ctx.strokeStyle='rgba(215,150,255,.9)';ctx.lineWidth=7;ctx.lineCap='round';
       ctx.beginPath();ctx.arc(0,24,58,Math.PI*1.12,Math.PI*1.88);ctx.stroke();
       ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=2.5;
@@ -1193,10 +1193,10 @@ function drawLeg(camX,camY){
       if(a>0){
         ctx.save();ctx.globalCompositeOperation='lighter';
         let bx=x+rnd(-8,8),by=y-620;
-        ctx.strokeStyle='rgba(255,236,150,'+a+')';ctx.lineWidth=7*a+2;ctx.shadowColor='#ffcf4a';ctx.shadowBlur=24;
         ctx.beginPath();ctx.moveTo(bx,by);
         for(let i=1;i<=9;i++){bx=x+rnd(-26,26)*(1-i/9);by=y-620+620*i/9;ctx.lineTo(bx,by);}
-        ctx.stroke();
+        ctx.strokeStyle='rgba(255,200,70,'+(a*.35)+')';ctx.lineWidth=16*a+4;ctx.stroke();
+        ctx.strokeStyle='rgba(255,236,150,'+a+')';ctx.lineWidth=7*a+2;ctx.stroke();
         ctx.fillStyle='rgba(255,230,140,'+(a*.45)+')';ctx.beginPath();ctx.ellipse(x,y,f.R,f.R*.62,0,0,TAU);ctx.fill();
         ctx.restore();
       }
@@ -3131,7 +3131,6 @@ function drawFox(x,y){
   const lift=HK?HK.sink*16:S.state==='cut'&&!S.cut.C.boss?-12*Math.min(1,S.cut.t/1.2)*Math.max(0,Math.min(1,(S.cut.C.end-S.cut.t)/.8)):0;
   if(J)drawSpirits(x,y+16+lift-h*.42,false);
   ctx.save();ctx.translate(x,y+16+lift);ctx.scale(-p.face,1);
-  if(L===4||L===5){ctx.shadowColor=L===4?'rgba(255,90,100,.95)':'rgba(255,150,40,.95)';ctx.shadowBlur=8*DPR;}
   const tx=LK.tb[L][0]*h,ty=LK.tb[L][1]*h,TI=TAILS[L>=3?1:0];
   if(!J&&TI.ok){
     const tw=h*(n>1?(n>=7?.66:.74):.7),th=tw*TI.ar,span=Math.min(1.5,.2*(n-1));
