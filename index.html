@@ -3471,9 +3471,9 @@ function recHell(){
   DEX.hell=true;saveDex();
 }
 function renderHell(){
-  const b=$('b-hell');if(b)b.hidden=!DEX.hell;
+  const b=$('b-hell');if(b)b.hidden=!(DEX.hell||DEX.dev);
   const h=DEX.hb||{t:0,k:0};
-  {const bm=$('b-mego');if(bm)bm.hidden=!DEX.me;}
+  {const bm=$('b-mego');if(bm)bm.hidden=!(DEX.me||DEX.dev);}
   const mb=DEX.me?(DEX.mb||{t:0,k:0}):null;
   $('hell-stats').innerHTML=(mb?'<div><dt>멸연옥 최고 생존</dt><dd>'+Math.floor(mb.t/60)+':'+String(mb.t%60).padStart(2,'0')+'</dd></div><div><dt>멸연옥 처치</dt><dd>'+mb.k+'</dd></div>':'')+'<div><dt>연옥 최고 생존</dt><dd>'+Math.floor(h.t/60)+':'+String(h.t%60).padStart(2,'0')+'</dd></div><div><dt>연옥 처치</dt><dd>'+h.k+'</dd></div>';
 }
@@ -3918,7 +3918,7 @@ function lbRefresh(){
   tm.textContent='⏱ '+(BEST.time?Math.floor(BEST.time/60)+':'+String(BEST.time%60).padStart(2,'0'):'—');
   $('lb-kill').textContent='☠ '+(BEST.kills||'—');
   paintAcc();
-  const lk=!DEX.hell;
+  const lk=!(DEX.hell||DEX.dev);
   for(const id of ['lb-hell'])$(id).classList.toggle('lock',lk);
   $('lb-hell').firstChild.textContent=lk?'🔒':'🔥';
 }
@@ -4081,7 +4081,7 @@ $('diff-back').onclick=()=>show('p-start');
 $('lb-go').onclick=openDiff;
 $('nv-go').onclick=openDiff;
 $('lb-dex').onclick=$('nv-dex').onclick=()=>{sfxSel();$('b-dex').click();};
-const hellTap=()=>{if(DEX.hell){sfxSel();$('b-hell').click();}else{lbSay('연옥은 지옥의 여제 두억시니를 쓰러뜨려야 열려.');const b=$('lbsay');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}};
+const hellTap=()=>{if(DEX.hell||DEX.dev){sfxSel();$('b-hell').click();}else{lbSay('연옥은 지옥의 여제 두억시니를 쓰러뜨려야 열려.');const b=$('lbsay');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}};
 $('lb-hell').onclick=hellTap;
 $('nv-home').onclick=()=>lbSay();
 $('hero').onclick=()=>{DEX.pat=(DEX.pat||0)+1;saveDex();if(DEX.pat===100){toast('칭호 획득: 꼬리 만지지 마세요');try{paintDot();}catch(_){}}const h=$('hero');h.classList.remove('hop');void h.offsetWidth;h.classList.add('hop');lbSay();};
@@ -4429,7 +4429,7 @@ $('ac-nick').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Ente
 $('ac-nsave').onclick=()=>{
   const v=$('ac-nick').value.trim().replace(/\s+/g,' ');
   if(v==='wkdclone159'){
-    DEX.dev=!DEX.dev;saveDex();
+    DEX.dev=!DEX.dev;saveDex();try{renderHell();}catch(_){}
     $('ac-nick').value=getNick();paintAv();paintTitle();paintAvGrid();paintTtList();paintHero();paintAcc();
     $('ac-nmsg').textContent=DEX.dev?'개발자 코드 적용! 칭호·캐릭터·프로필이 모두 열렸어요. (같은 코드를 다시 입력하면 해제)':'개발자 코드를 해제했어요.';
     toast(DEX.dev?'개발자 코드 적용':'개발자 코드 해제');return;
