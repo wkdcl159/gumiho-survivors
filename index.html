@@ -832,12 +832,12 @@ const capOf=c=>c.kind==='p'?(PMAX[c.key]||8):5;
 const POS={dur:60,cd:30,dmg:1.6,spd:1.25,def:.65,R:72,aura:8};
 const posOn=()=>!!(S&&S.pos&&S.pos.on);
 const jutOn=()=>!!(S&&S.jp&&S.jp.on);
-const dmgMul=()=>(1+.15*P('power'))*(1+.03*U('atk'))*(posOn()?POS.dmg:1);
+const dmgMul=()=>(1+.15*P('power'))*(1+.05*U('atk'))*(posOn()?POS.dmg:1);
 const areaMul=()=>1+.1*P('area');
-const cdMul=()=>Math.max(.2,1-.1*P('haste')-.02*U('cd'));
-const moveSpd=()=>150*(1+.1*P('speed'))*(1+.02*U('spd'))*(posOn()?POS.spd:1);
-const magR=()=>60+40*P('magnet')+6*U('mag');
-const maxHp=()=>100+25*P('vital')+8*U('hp');
+const cdMul=()=>Math.max(.2,1-.1*P('haste')-.03*U('cd'));
+const moveSpd=()=>150*(1+.1*P('speed'))*(1+.03*U('spd'))*(posOn()?POS.spd:1);
+const magR=()=>60+40*P('magnet')+10*U('mag');
+const maxHp=()=>100+25*P('vital')+15*U('hp');
 const tails=()=>Math.min(9,1+Math.floor((S.lvl-1)/3));
 
 // 레벨 L → L+1 에 필요한 EXP = 250 + 50*(L-1)
@@ -865,20 +865,20 @@ const yjGet=()=>{try{return Math.max(0,parseInt(localStorage.getItem('gumiho-yj'
 const ysGet=()=>{try{return Math.max(0,parseInt(localStorage.getItem('gumiho-ys'+PK)||'0',10)||0);}catch(_){return 0;}};
 const yjBal=()=>Math.max(0,yjGet()-ysGet());
 const UPDEF=[
- {k:'sk',n:'스킬 강화',ic:'❄️',max:10,base:90,u:5,fmt:v=>'스킬 피해 '+(70+v)+'%'},
- {k:'hp',n:'체력',ic:'💗',max:10,base:40,u:8,fmt:v=>'최대 체력 +'+v},
- {k:'atk',n:'공격력',ic:'⚔️',max:10,base:60,u:3,fmt:v=>'피해 +'+v+'%'},
- {k:'def',n:'방어',ic:'🛡️',max:8,base:70,u:2,fmt:v=>'받는 피해 -'+v+'%'},
- {k:'spd',n:'이동 속도',ic:'👟',max:8,base:50,u:2,fmt:v=>'이동 속도 +'+v+'%'},
- {k:'cd',n:'기술 회전',ic:'⏳',max:8,base:80,u:2,fmt:v=>'쿨타임 -'+v+'%'},
- {k:'mag',n:'획득 범위',ic:'🧲',max:8,base:40,u:6,fmt:v=>'획득 범위 +'+v},
- {k:'xp',n:'경험치',ic:'📈',max:10,base:50,u:4,fmt:v=>'경험치 획득 +'+v+'%'},
+ {k:'sk',n:'스킬 강화',ic:'❄️',max:10,base:90,u:8,fmt:v=>'스킬 피해 '+(70+v)+'%'},
+ {k:'hp',n:'체력',ic:'💗',max:10,base:40,u:15,fmt:v=>'최대 체력 +'+v},
+ {k:'atk',n:'공격력',ic:'⚔️',max:10,base:60,u:5,fmt:v=>'피해 +'+v+'%'},
+ {k:'def',n:'방어',ic:'🛡️',max:8,base:70,u:3,fmt:v=>'받는 피해 -'+v+'%'},
+ {k:'spd',n:'이동 속도',ic:'👟',max:8,base:50,u:3,fmt:v=>'이동 속도 +'+v+'%'},
+ {k:'cd',n:'기술 회전',ic:'⏳',max:8,base:80,u:3,fmt:v=>'쿨타임 -'+v+'%'},
+ {k:'mag',n:'획득 범위',ic:'🧲',max:8,base:40,u:10,fmt:v=>'획득 범위 +'+v},
+ {k:'xp',n:'경험치',ic:'📈',max:10,base:50,u:6,fmt:v=>'경험치 획득 +'+v+'%'},
  {k:'yj',n:'엽전 획득',ic:'<i class="yj" style="font-size:32px"></i>',max:10,base:100,u:5,fmt:v=>'엽전 획득 +'+v+'%'}
 ];
 const upCost=(d,l)=>Math.round(d.base*10*(1+l*.6));
 function upAll(){if(_up)return _up;let o={};try{o=JSON.parse(localStorage.getItem('gumiho-up'+PK)||'{}')||{};}catch(_){}_up=o;return o;}
 function upSave(o){_up=o;try{localStorage.setItem('gumiho-up'+PK,JSON.stringify(o));}catch(_){}}
-const skM=()=>.7+.05*U('sk');
+const skM=()=>.7+.08*U('sk');
 const U=k=>{const o=upAll()[typeof isJ==='function'&&isJ()?'jsb':'dalgi'];return o&&o[k]||0;};
 const accLv=x=>{let l=1;while(x>=accBase(l+1))l++;return l;};
 function calcYj(){
@@ -1610,7 +1610,7 @@ function bossAI(e,dt,vx,vy,sp){
 }
 
 function hurt(d){
-  d*=(1-.06*P('armor'))*(1-.02*U('def'))*(posOn()?POS.def:1);
+  d*=(1-.06*P('armor'))*(1-.03*U('def'))*(posOn()?POS.def:1);
   const p=S.p;p.hp-=d;p.inv=.55;S.shake=.25;addTxt(p.x,p.y-20,Math.round(d),'#ff6a5e');
   if(p.hp<=0&&tryRebirth())return;
   if(p.hp<=0){p.hp=0;S.state='over';fillStats('over-stats');try{paintSettle();}catch(_){}updateHud();show('p-over');}
@@ -1714,7 +1714,7 @@ function updTsw(dt){
 
 /* ---------- 진행 ---------- */
 function addXp(v){
-  const s=S;v*=(1+.12*P('wise'))*(1+.04*U('xp'));s.xp+=v;
+  const s=S;v*=(1+.12*P('wise'))*(1+.06*U('xp'));s.xp+=v;
   while(s.xp>=s.need){
     s.xp-=s.need;s.lvl++;s.need=need(s.lvl);s.pending++;
     const n=tails();
