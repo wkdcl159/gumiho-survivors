@@ -797,7 +797,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&S&&S.state
 const joy={on:false,id:null,ox:0,oy:0,x:0,y:0,fixed:false,touch:false};
 const JR=55;
 let TOUCHDEV=false;try{TOUCHDEV=matchMedia('(pointer:coarse)').matches||'ontouchstart' in window;}catch(_){}
-const joyPad=()=>({x:innerWidth/2,y:innerHeight-Math.min(130,innerHeight*.17)});
+const joyPad=()=>({x:innerWidth/2,y:innerHeight-Math.min(235,innerHeight*.3)});
 cv.addEventListener('pointerdown',e=>{
   const tch=e.pointerType==='touch'||e.pointerType==='pen';
   if(tch)joy.touch=true;
