@@ -1076,7 +1076,7 @@ function updYeom(dt){
       const a=s.ysa+i*TAU/3,x=p.x+Math.cos(a)*R,y=p.y+Math.sin(a)*R;
       for(const e of s.en){
         if(e.dead)continue;
-        if((e.yc||0)>0){e.yc-=dt/3;continue;}
+        if((e.yc||0)>0){e.yc-=dt;continue;}
         if(Math.hypot(e.x-x,e.y-y)<54+e.r){e.yc=.4;const k=Math.atan2(e.y-p.y,e.x-p.x);hit(e,e.type==='boss'?55:110,Math.cos(k)*60,Math.sin(k)*60);}
       }
     }
