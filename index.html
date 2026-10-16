@@ -4261,7 +4261,7 @@ const RK_MAX={t:21600,k:500000,exp:3000000};
 let rkTab=1;
 function rankDoc(){
   const cl=(v,m)=>Math.max(0,Math.min(m,Math.floor(+v||0)));
-  const d={nick:String(getNick()).slice(0,12),av:avKey(),title:ttKey(),exp:cl(accGet(),RK_MAX.exp),tops:{d0:!!TN.d0,d1:!!TN.d1,d2:!!TN.d2,lv:!!TN.lv,v2:true},u:Date.now()};
+  const d={nick:String(getNick()).slice(0,12),av:avKey(),title:ttKey(),exp:cl(accGet(),RK_MAX.exp),tops:{d0:!!TN.d0,d1:!!TN.d1,d2:!!TN.d2,lv:!!TN.lv},u:Date.now()};
   let any=d.exp>0;
   for(let i=0;i<3;i++)if(BD[i].t>0){d['t'+i]=cl(BD[i].t,RK_MAX.t);d['k'+i]=cl(BD[i].k,RK_MAX.k);any=true;}
   return any?d:null;
@@ -4298,10 +4298,8 @@ async function loadRank(){
     const snap=await fb.db.collection('ranks2').orderBy(f,'desc').limit(50).get();
     const uid=fb.auth.currentUser?fb.auth.currentUser.uid:null;
     box.innerHTML='';let mine=null,n=0;
-    const rows=[];snap.forEach(doc=>{const d=doc.data();if(lv&&!(d.tops&&d.tops.v2)&&d.exp>0)d.exp=convOld(d.exp);rows.push({id:doc.id,d});});
-    if(lv)rows.sort((x,y)=>(y.d.exp||0)-(x.d.exp||0));
-    rows.forEach(doc=>{
-      const d=doc.d;if(!(d[f]>0))return;n++;
+    snap.forEach(doc=>{
+      const d=doc.data();if(!(d[f]>0))return;n++;
       const a=AVATARS.find(x=>x.k===d.av)||AVATARS[0],tt=TITLES.find(x=>x.k===d.title),isMe=doc.id===uid;
       if(isMe)mine=n;
       const r=document.createElement('div');r.className='rkr'+(isMe?' me':'')+(n===1?' first':'');
